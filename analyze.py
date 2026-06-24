@@ -124,12 +124,23 @@ def max_arrival_delay(stops: list[dict]) -> int | None:
     return max(delays) if delays else None
 
 
-def origin_scheduled_dt(stops: list[dict]) -> datetime | None:
-    """First scheduled departure time of the train (origin)."""
+def origin_stop(stops: list[dict]) -> dict | None:
+    """First observed departure on the axis (may not be the train's true origin
+    if the train started outside our axis stops)."""
     deps = [s for s in stops if s["kind"] == "dep"]
     if deps:
-        return parse_dt(deps[0]["base_dt"])
-    return parse_dt(stops[0]["base_dt"]) if stops else None
+        return deps[0]
+    return stops[0] if stops else None
+
+
+def origin_scheduled_dt(stops: list[dict]) -> datetime | None:
+    o = origin_stop(stops)
+    return parse_dt(o["base_dt"]) if o else None
+
+
+def origin_stop_name(stops: list[dict]) -> str:
+    o = origin_stop(stops)
+    return o.get("stop_name", "?") if o else "?"
 
 
 def hub_delay_sec(stops: list[dict]) -> int | None:
@@ -305,12 +316,13 @@ def main() -> None:
                 train_label(stops),
                 sched.strftime("%d/%m") if sched else "?",
                 sched.strftime("%H:%M") if sched else "?",
+                origin_stop_name(stops),
                 (stops[-1].get("direction") or "?")[:40],
                 f"+{delayed[vj] // 60} min",
                 f"+{hub // 60} min" if hub is not None else "—",
             ])
         lines.append(fmt_table(
-            ["Train", "Jour", "Heure prévue", "Destination", "Retard arr. max", "Retard à St-Étienne"],
+            ["Train", "Jour", "Heure prévue", "Origine", "Destination", "Retard arr. max", "Retard à St-Étienne"],
             train_rows,
         ))
         lines.append("")
