@@ -209,9 +209,11 @@ def collect_window(from_dt: datetime, target_date: date) -> pathlib.Path:
     new_rows = 0
     updated_rows = 0
     api_calls = 0
+    events_seen = 0
     for stop_id, stop_name in STOPS.items():
         for path, key, kind in (("departures", "departures", "dep_origin"), ("arrivals", "arrivals", "arr_origin")):
             for row in fetch_stops(path, key, stop_id, stop_name, from_str, kind, run_ts):
+                events_seen += 1
                 row_date = row["base_dt"][:10]
                 if row_date != target_date.isoformat():
                     continue  # ignore data slipping into adjacent days
@@ -241,9 +243,20 @@ def collect_window(from_dt: datetime, target_date: date) -> pathlib.Path:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
     print(
-        f"{run_ts}: {api_calls} API calls, "
+        f"{run_ts}: {api_calls} API calls, {events_seen} events seen, "
         f"{len(existing)} rows total ({new_rows} new, {updated_rows} updated) → {out_file}"
     )
+
+    # Silent-failure detection: during operational hours we should always see
+    # some events. Zero events with non-zero calls means the API returned
+    # empty everywhere — likely an outage or a quota issue.
+    paris_hour = (datetime.now(timezone.utc) + timedelta(hours=2)).hour
+    if api_calls > 0 and events_seen == 0 and 5 <= paris_hour <= 23:
+        sys.exit(
+            f"FAIL: 0 events from {api_calls} API calls at {paris_hour}h Paris "
+            "(operational hours) — suspected outage or quota issue."
+        )
+
     return out_file
 
 

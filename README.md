@@ -23,6 +23,25 @@ realtime status is still exposed.
 4. **Trigger a first run** manually via Actions → workflow_dispatch with
    `backfill=true` to seed the current day.
 
+## Alerting
+
+Three layers, all optional and independent:
+
+1. **GitHub email on failure** (default). Enable in
+   https://github.com/settings/notifications → Actions. Catches Python
+   exceptions, persistent HTTP errors, push conflicts.
+2. **Silent-failure detection** (built into `collect.py`). If a run makes API
+   calls but the API returns zero events during operational hours
+   (05:00-23:00 Paris), the script exits non-zero so the workflow fails and
+   layer 1 fires. Catches the case where the API is reachable but stale or
+   the quota is silently exhausted.
+3. **Heartbeat to healthchecks.io** (optional). Create a free check at
+   https://healthchecks.io with a 2-hour schedule + 1-hour grace, then add
+   its ping URL as a GitHub Secret `HEALTHCHECKS_URL`. The workflow pings
+   on success and `/fail` on error. Healthchecks notifies you (email /
+   Slack / Discord / SMS) if no ping arrives in time — catches GitHub
+   Actions itself being unavailable.
+
 ## Output
 
 `data/YYYY-MM-DD.jsonl.gz` — one gzipped JSON-lines file per day. Each row:
