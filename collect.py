@@ -54,6 +54,7 @@ STOPS: dict[str, str] = {
     "stop_area:SNCF:87726331": "Rive-de-Gier",
     "stop_area:SNCF:87726307": "Saint-Chamond",
     "stop_area:SNCF:87726000": "Saint-Étienne Châteaucreux",
+    "stop_area:SNCF:87698662": "Saint-Étienne Châteaucreux Gare Routière",
     "stop_area:SNCF:87726190": "Saint-Étienne Bellevue",
     "stop_area:SNCF:87726174": "Saint-Étienne Le Clapier",
     "stop_area:SNCF:87726901": "Saint-Étienne Carnot",
@@ -71,10 +72,15 @@ STOPS: dict[str, str] = {
     "stop_area:SNCF:87734749": "Retournac",
     "stop_area:SNCF:87734715": "Saint-Vincent le Château",
     "stop_area:SNCF:87734699": "Le Puy-en-Velay",
+    # Le Puy connecting bus stops (P37 to Clermont-Ferrand, P85 to Brioude)
+    "stop_area:SNCF:87024380": "Le Puy-en-Velay Lafayette",
+    "stop_area:SNCF:87589598": "Le Puy En Velay - Hôpital E.Roux",
 }
 
-# Lines whose stops we re-discover with `--refresh-stops` (C18, P28).
-REFRESH_LINE_CODES = ("C18", "P28")
+# Lines whose stops we re-discover with `--refresh-stops`.
+# C18 = Lyon ↔ Saint-Étienne, P28 = Saint-Étienne ↔ Le Puy,
+# P37 / P85 = Le Puy ↔ Clermont-Ferrand / Brioude (connection buses).
+REFRESH_LINE_CODES = ("C18", "P28", "P37", "P85")
 AURA_NETWORK_ID = "network:SNCF:FR:Branding::f4fa116c-2d6a-4696-b6c9-47195206d6f4:"
 
 # How far back each run looks. 4h covers the 2h cron interval with overlap.

@@ -49,12 +49,14 @@ entry is later upgraded to `realtime`.
 
 ## Stops covered
 
-32 train stations across the Lyon ↔ Saint-Étienne and Saint-Étienne ↔ Le Puy
-axes (lines C18 and P28). Refresh the list with `python collect.py --refresh-stops`.
+35 stops covering the Lyon ↔ Saint-Étienne ↔ Le Puy train axes (C18 + P28)
+plus connecting bus origins at Saint-Étienne Châteaucreux Gare Routière and
+the two extra Le Puy stops on lines P37 (toward Clermont-Ferrand) and P85
+(toward Brioude). Refresh with `python collect.py --refresh-stops`.
 
 ## Quota
 
-32 stops × 2 endpoints (departures + arrivals) × 12 runs/day ≈ 768 calls/day.
+35 stops × 2 endpoints (departures + arrivals) × 12 runs/day ≈ 840 calls/day.
 Quota is 5 000/day → comfortable margin.
 
 ## Analysis (after a few weeks of data)
