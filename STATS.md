@@ -1,6 +1,6 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-06-24 13:04 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-06-24 13:10 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
