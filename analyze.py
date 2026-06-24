@@ -124,6 +124,24 @@ def max_arrival_delay(stops: list[dict]) -> int | None:
     return max(delays) if delays else None
 
 
+def origin_scheduled_dt(stops: list[dict]) -> datetime | None:
+    """First scheduled departure time of the train (origin)."""
+    deps = [s for s in stops if s["kind"] == "dep"]
+    if deps:
+        return parse_dt(deps[0]["base_dt"])
+    return parse_dt(stops[0]["base_dt"]) if stops else None
+
+
+def hub_delay_sec(stops: list[dict]) -> int | None:
+    """Worst delay observed at Saint-Étienne Châteaucreux for this train."""
+    hub = [
+        s["delay_sec"]
+        for s in stops
+        if s["stop_id"] == STE_HUB and s.get("delay_sec") is not None
+    ]
+    return max(hub) if hub else None
+
+
 def find_connections(
     journeys: dict[str, list[dict]],
     inbound_filter: Callable[[list[dict]], bool],
@@ -281,12 +299,20 @@ def main() -> None:
         train_rows = []
         for vj in sorted(delayed, key=lambda v: -delayed[v])[:30]:
             stops = journeys[vj]
+            sched = origin_scheduled_dt(stops)
+            hub = hub_delay_sec(stops)
             train_rows.append([
                 train_label(stops),
+                sched.strftime("%d/%m") if sched else "?",
+                sched.strftime("%H:%M") if sched else "?",
                 (stops[-1].get("direction") or "?")[:40],
                 f"+{delayed[vj] // 60} min",
+                f"+{hub // 60} min" if hub is not None else "—",
             ])
-        lines.append(fmt_table(["Train", "Destination", "Retard arr. max"], train_rows))
+        lines.append(fmt_table(
+            ["Train", "Jour", "Heure prévue", "Destination", "Retard arr. max", "Retard à St-Étienne"],
+            train_rows,
+        ))
         lines.append("")
 
     if missed:
