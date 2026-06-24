@@ -2,8 +2,9 @@ name: Daily summary
 
 on:
   schedule:
-    # 04:00 UTC = 06:00 Paris. Runs once daily on the last 24h of data.
-    - cron: "0 4 * * *"
+    # 04:23 UTC ≈ 06:23 Paris. Off-the-hour scheduling avoids GitHub Actions
+    # skipping our run during the top-of-hour congestion peak.
+    - cron: "23 4 * * *"
   workflow_dispatch:
 
 permissions:

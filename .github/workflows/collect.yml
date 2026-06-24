@@ -2,9 +2,9 @@ name: Collect Lyon ↔ Le Puy delays
 
 on:
   schedule:
-    # Every 2 hours. The SNCF API only retains realtime freshness for a few
-    # hours after a train runs; frequent runs catch each train while it's fresh.
-    - cron: "0 */2 * * *"
+    # Every 2 hours, 17 minutes past the hour. Off-the-hour scheduling avoids
+    # GitHub Actions skipping our runs during the top-of-hour congestion peak.
+    - cron: "17 */2 * * *"
   workflow_dispatch:
     inputs:
       backfill:
