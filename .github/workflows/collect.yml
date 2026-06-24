@@ -11,6 +11,10 @@ on:
         description: "Capture full current day (true/false)"
         required: false
         default: "false"
+  # External trigger fallback (cron-job.org), since GitHub Actions schedules
+  # are best-effort and frequently skipped under load.
+  repository_dispatch:
+    types: [collect]
 
 permissions:
   contents: write

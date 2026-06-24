@@ -6,6 +6,8 @@ on:
     # skipping our run during the top-of-hour congestion peak.
     - cron: "23 4 * * *"
   workflow_dispatch:
+  repository_dispatch:
+    types: [analyze]
 
 permissions:
   contents: write
