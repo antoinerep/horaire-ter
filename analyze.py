@@ -153,6 +153,48 @@ def hub_delay_sec(stops: list[dict]) -> int | None:
     return max(hub) if hub else None
 
 
+def is_origin_cancelled(stops: list[dict]) -> bool:
+    o = origin_stop(stops)
+    return bool(o and o.get("cancelled"))
+
+
+def direction_label(stops: list[dict]) -> str:
+    return (stops[-1].get("direction") or "").strip()
+
+
+def substitute_delay_sec(stops: list[dict], all_journeys: dict[str, list[dict]]) -> int | None:
+    """For a cancelled train, find the next non-cancelled train departing the
+    same stop in the same direction. Return wait time (realtime of next train
+    minus scheduled time of cancelled train), in seconds."""
+    o = origin_stop(stops)
+    if not o:
+        return None
+    cancelled_base = parse_dt(o["base_dt"])
+    direction = direction_label(stops)
+    if not cancelled_base or not direction:
+        return None
+    candidates: list[tuple[datetime, datetime]] = []
+    for vj, ss in all_journeys.items():
+        if direction_label(ss) != direction:
+            continue
+        ev = next(
+            (s for s in ss if s["stop_id"] == o["stop_id"] and s["kind"] == o["kind"]),
+            None,
+        )
+        if not ev or ev.get("cancelled"):
+            continue
+        ev_base = parse_dt(ev["base_dt"])
+        if not ev_base or ev_base <= cancelled_base:
+            continue
+        ev_real = parse_dt(ev.get("realtime_dt")) or ev_base
+        candidates.append((ev_base, ev_real))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda x: x[0])
+    _, next_real = candidates[0]
+    return int((next_real - cancelled_base).total_seconds())
+
+
 def find_connections(
     journeys: dict[str, list[dict]],
     inbound_filter: Callable[[list[dict]], bool],
@@ -164,7 +206,7 @@ def find_connections(
     for vj, stops in journeys.items():
         if outbound_filter(stops):
             d = find_stop(stops, STE_HUB, "dep")
-            if d:
+            if d and not d.get("cancelled"):
                 outbound.append({"vj_id": vj, "stop": d, "stops": stops})
     outbound.sort(key=lambda x: x["stop"]["base_dt"])
 
@@ -173,7 +215,7 @@ def find_connections(
         if not inbound_filter(stops):
             continue
         a = find_stop(stops, STE_HUB, "arr")
-        if not a or a.get("delay_sec") is None:
+        if not a or a.get("cancelled") or a.get("delay_sec") is None:
             continue
         a_base = parse_dt(a["base_dt"])
         a_real = parse_dt(a.get("realtime_dt")) or a_base
@@ -253,15 +295,28 @@ def main() -> None:
     # Restrict to trains that actually run on the Lyon ↔ Le Puy axis.
     journeys = {vj: stops for vj, stops in journeys.items() if is_on_axis(stops)}
 
+    # Cancelled trains: substitute delay = wait for next same-direction train.
+    cancelled: dict[str, int | None] = {}
+    for vj, stops in journeys.items():
+        if is_origin_cancelled(stops):
+            cancelled[vj] = substitute_delay_sec(stops, journeys)
+
+    # Delays from realtime observations (excludes cancelled trains).
     delays: dict[str, int] = {}
     for vj, stops in journeys.items():
+        if vj in cancelled:
+            continue
         d = max_arrival_delay(stops)
         if d is not None:
             delays[vj] = d
-    total = len(delays)
+
+    total_observed = len(delays) + len(cancelled)
     delayed = {vj: d for vj, d in delays.items() if d >= DELAY_THRESHOLD_SEC}
-    pct_delayed = (len(delayed) / total * 100) if total else 0.0
-    med_delay_min = (median(delays.values()) / 60) if delays else 0.0
+    n_disrupted = len(delayed) + len(cancelled)
+    pct_disrupted = (n_disrupted / total_observed * 100) if total_observed else 0.0
+    # Median delay including cancellations: use substitute delay where known.
+    all_delay_values = list(delays.values()) + [d for d in cancelled.values() if d is not None]
+    med_delay_min = (median(all_delay_values) / 60) if all_delay_values else 0.0
 
     conn_to_lepuy = find_connections(journeys, from_lyon_to_ste, from_ste_to_lepuy)
     conn_to_lyon = find_connections(journeys, from_lepuy_to_ste, from_ste_to_lyon)
@@ -289,9 +344,15 @@ def main() -> None:
     lines.append("")
     lines.append("## Vue d'ensemble")
     lines.append("")
-    lines.append(f"- **Trains observés (avec donnée realtime)** : {total}")
-    lines.append(f"- **Trains en retard ≥ 5 min à l'arrivée** : {len(delayed)} ({pct_delayed:.1f} %)")
-    lines.append(f"- **Médiane retard à l'arrivée (sans correspondance)** : {med_delay_min:.1f} min")
+    lines.append(f"- **Trains observés** : {total_observed}")
+    lines.append(f"- **Trains annulés** : {len(cancelled)}")
+    lines.append(
+        f"- **Trains en retard ≥ 5 min ou annulés** : {n_disrupted} ({pct_disrupted:.1f} %)"
+    )
+    lines.append(
+        f"- **Médiane retard à l'arrivée (sans correspondance, "
+        f"annulations comptées comme attente train suivant)** : {med_delay_min:.1f} min"
+    )
     if all_conn:
         pct_missed = len(missed) / len(all_conn) * 100
         lines.append(
@@ -304,25 +365,40 @@ def main() -> None:
         )
     lines.append("")
 
-    if delayed:
-        lines.append("## Trains en retard")
+    # Combined table: delayed + cancelled trains, sorted by effective delay.
+    disrupted: list[tuple[str, int, str]] = []  # (vj, effective_delay_sec, status)
+    for vj, d in delayed.items():
+        disrupted.append((vj, d, "Retard"))
+    for vj, d in cancelled.items():
+        disrupted.append((vj, d if d is not None else -1, "ANNULÉ"))
+    if disrupted:
+        lines.append("## Trains en retard ou annulés")
         lines.append("")
         train_rows = []
-        for vj in sorted(delayed, key=lambda v: -delayed[v])[:30]:
+        for vj, eff_delay, status in sorted(disrupted, key=lambda x: -x[1])[:30]:
             stops = journeys[vj]
             sched = origin_scheduled_dt(stops)
             hub = hub_delay_sec(stops)
+            if status == "ANNULÉ":
+                delay_str = (
+                    f"+{eff_delay // 60} min (train suivant)" if eff_delay >= 0 else "—"
+                )
+                hub_str = "—"
+            else:
+                delay_str = f"+{eff_delay // 60} min"
+                hub_str = f"+{hub // 60} min" if hub is not None else "—"
             train_rows.append([
                 train_label(stops),
                 sched.strftime("%d/%m") if sched else "?",
                 sched.strftime("%H:%M") if sched else "?",
                 origin_stop_name(stops),
                 (stops[-1].get("direction") or "?")[:40],
-                f"+{delayed[vj] // 60} min",
-                f"+{hub // 60} min" if hub is not None else "—",
+                status,
+                delay_str,
+                hub_str,
             ])
         lines.append(fmt_table(
-            ["Train", "Jour", "Heure prévue", "Origine", "Destination", "Retard arr. max", "Retard à St-Étienne"],
+            ["Train", "Jour", "Heure prévue", "Origine", "Destination", "Statut", "Retard ressenti", "Retard à St-Étienne"],
             train_rows,
         ))
         lines.append("")
@@ -358,8 +434,9 @@ def main() -> None:
 
     OUT_FILE.write_text("\n".join(lines))
     print(
-        f"Wrote {OUT_FILE} ({len(rows)} rows, {total} trains, "
-        f"{len(delayed)} delayed, {len(missed)} missed connections)."
+        f"Wrote {OUT_FILE} ({len(rows)} rows, {total_observed} trains, "
+        f"{len(delayed)} delayed, {len(cancelled)} cancelled, "
+        f"{len(missed)} missed connections)."
     )
 
 

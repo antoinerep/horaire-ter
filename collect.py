@@ -133,11 +133,20 @@ def delay_seconds(scheduled: datetime | None, realtime: datetime | None) -> int 
     return int((realtime - scheduled).total_seconds())
 
 
-def fetch_stops(path: str, key: str, stop_id: str, stop_name: str, from_dt: str, kind: str, run_ts: str) -> Iterator[dict[str, Any]]:
+def fetch_stops(
+    path: str,
+    key: str,
+    stop_id: str,
+    stop_name: str,
+    from_dt: str,
+    kind: str,
+    run_ts: str,
+    freshness: str = "realtime",
+) -> Iterator[dict[str, Any]]:
     """Page through a departures or arrivals endpoint."""
     params = {
         "from_datetime": from_dt,
-        "data_freshness": "realtime",
+        "data_freshness": freshness,
         "count": PAGE_COUNT,
         "depth": 0,
     }
@@ -165,6 +174,7 @@ def fetch_stops(path: str, key: str, stop_id: str, stop_name: str, from_dt: str,
                 "stop_name": stop_name,
                 "freshness": sdt.get("data_freshness"),
                 "kind_origin": kind,  # "departures" or "arrivals" call origin
+                "cancelled": False,
             }
             if base_dep is not None:
                 yield {
@@ -208,35 +218,62 @@ def collect_window(from_dt: datetime, target_date: date) -> pathlib.Path:
 
     new_rows = 0
     updated_rows = 0
+    cancelled_rows = 0
     api_calls = 0
     events_seen = 0
     for stop_id, stop_name in STOPS.items():
         for path, key, kind in (("departures", "departures", "dep_origin"), ("arrivals", "arrivals", "arr_origin")):
-            for row in fetch_stops(path, key, stop_id, stop_name, from_str, kind, run_ts):
-                events_seen += 1
-                row_date = row["base_dt"][:10]
-                if row_date != target_date.isoformat():
-                    continue  # ignore data slipping into adjacent days
+            # Fetch both base_schedule and realtime so we can detect trains
+            # that vanished from the realtime feed (i.e. cancellations).
+            rt_rows = list(fetch_stops(path, key, stop_id, stop_name, from_str, kind, run_ts, "realtime"))
+            base_rows = list(fetch_stops(path, key, stop_id, stop_name, from_str, kind, run_ts, "base_schedule"))
+            api_calls += 2
+            events_seen += len(rt_rows) + len(base_rows)
+
+            rt_keys = {(r["vj_id"], r["stop_id"], r["kind"], r["base_dt"]) for r in rt_rows}
+
+            def merge(row: dict, *, cancelled: bool) -> None:
+                nonlocal new_rows, updated_rows, cancelled_rows
+                if row["base_dt"][:10] != target_date.isoformat():
+                    return
+                row = dict(row)
+                if cancelled:
+                    row["cancelled"] = True
+                    row["freshness"] = "cancelled"
+                    row["realtime_dt"] = None
+                    row["delay_sec"] = None
                 k = (row["vj_id"], row["stop_id"], row["kind"], row["base_dt"])
                 prev = existing.get(k)
-                # Prefer rows with realtime freshness; ignore base_schedule
-                # updates that would overwrite a realtime observation.
                 if prev is None:
                     existing[k] = row
                     new_rows += 1
-                elif (
-                    prev.get("freshness") == "base_schedule"
-                    and row.get("freshness") == "realtime"
-                ):
+                    if cancelled:
+                        cancelled_rows += 1
+                    return
+                # Cancellation observed for the first time → upgrade.
+                if cancelled and not prev.get("cancelled"):
                     existing[k] = row
                     updated_rows += 1
-                elif (
-                    prev.get("freshness") == row.get("freshness")
+                    cancelled_rows += 1
+                    return
+                # Realtime observation of a previously cancelled or base row → upgrade.
+                if not cancelled and (prev.get("cancelled") or prev.get("freshness") == "base_schedule") and row.get("freshness") == "realtime":
+                    existing[k] = row
+                    updated_rows += 1
+                    return
+                if (
+                    not cancelled
+                    and prev.get("freshness") == row.get("freshness")
                     and row.get("delay_sec") != prev.get("delay_sec")
                 ):
                     existing[k] = row
                     updated_rows += 1
-            api_calls += 1
+
+            for row in rt_rows:
+                merge(row, cancelled=False)
+            for row in base_rows:
+                k = (row["vj_id"], row["stop_id"], row["kind"], row["base_dt"])
+                merge(row, cancelled=(k not in rt_keys))
 
     with gzip.open(out_file, "wt", encoding="utf-8") as f:
         for row in existing.values():
@@ -244,7 +281,8 @@ def collect_window(from_dt: datetime, target_date: date) -> pathlib.Path:
 
     print(
         f"{run_ts}: {api_calls} API calls, {events_seen} events seen, "
-        f"{len(existing)} rows total ({new_rows} new, {updated_rows} updated) → {out_file}"
+        f"{len(existing)} rows total ({new_rows} new, {updated_rows} updated, "
+        f"{cancelled_rows} cancelled) → {out_file}"
     )
 
     # Silent-failure detection: during operational hours we should always see
