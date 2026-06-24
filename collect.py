@@ -127,6 +127,15 @@ def parse_dt(s: str | None) -> datetime | None:
         return None
 
 
+def normalize_vj_id(vj_id: str) -> str:
+    """Strip the ":RealTime:UUID" suffix that Navitia appends to a train each
+    time its realtime state changes. The canonical form is the first six
+    colon-separated parts (vehicle_journey:SNCF:DATE:NUMBER:OP:MODE) — any
+    longer suffix represents a modification annotation, not a different train."""
+    parts = vj_id.split(":")
+    return ":".join(parts[:6]) if len(parts) > 6 else vj_id
+
+
 def delay_seconds(scheduled: datetime | None, realtime: datetime | None) -> int | None:
     if scheduled is None or realtime is None:
         return None
@@ -161,7 +170,9 @@ def fetch_stops(
             real_arr = parse_dt(sdt.get("arrival_date_time"))
             di = item.get("display_informations") or {}
             links = item.get("links") or []
-            vj_id = next((l.get("id", "") for l in links if l.get("type") == "vehicle_journey"), "")
+            vj_id = normalize_vj_id(
+                next((l.get("id", "") for l in links if l.get("type") == "vehicle_journey"), "")
+            )
             # Yield one row for the arrival side and one for the departure side
             # when both are available (intermediate stops have both).
             common = {
@@ -207,14 +218,27 @@ def collect_window(from_dt: datetime, target_date: date) -> pathlib.Path:
     out_dir.mkdir(exist_ok=True)
     out_file = out_dir / f"{target_date.isoformat()}.jsonl.gz"
 
+    def quality(r: dict) -> tuple:
+        if r.get("cancelled"):
+            return (0, r.get("run_ts", ""))
+        if r.get("freshness") == "realtime":
+            return (2, r.get("run_ts", ""))
+        return (1, r.get("run_ts", ""))
+
     # Load existing observations (dedupe key: vj_id|stop_id|kind|base_dt).
+    # Normalize vj_ids at load so older rows written before the fix get merged
+    # with the canonical ID. Prefer realtime > base_schedule > cancelled when
+    # multiple historical rows collapse to the same key.
     existing: dict[tuple, dict[str, Any]] = {}
     if out_file.exists():
         with gzip.open(out_file, "rt", encoding="utf-8") as f:
             for line in f:
                 row = json.loads(line)
+                row["vj_id"] = normalize_vj_id(row["vj_id"])
                 key = (row["vj_id"], row["stop_id"], row["kind"], row["base_dt"])
-                existing[key] = row
+                prev = existing.get(key)
+                if prev is None or quality(row) > quality(prev):
+                    existing[key] = row
 
     new_rows = 0
     updated_rows = 0

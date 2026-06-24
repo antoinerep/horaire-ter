@@ -53,6 +53,14 @@ def parse_dt(s: str | None) -> datetime | None:
         return None
 
 
+def normalize_vj_id(vj_id: str) -> str:
+    """Navitia re-issues a train under a ":RealTime:UUID"-suffixed vj_id each
+    time its realtime state changes. Strip the suffix so every variant of the
+    same physical train shares one canonical id."""
+    parts = vj_id.split(":")
+    return ":".join(parts[:6]) if len(parts) > 6 else vj_id
+
+
 def load_rows(window_hours: int) -> list[dict]:
     cutoff = datetime.now(PARIS_TZ).replace(tzinfo=None) - timedelta(hours=window_hours)
     rows: list[dict] = []
@@ -62,6 +70,7 @@ def load_rows(window_hours: int) -> list[dict]:
                 row = json.loads(line)
                 dt = parse_dt(row.get("base_dt"))
                 if dt and dt >= cutoff and row.get("line_name") in RELEVANT_LINES:
+                    row["vj_id"] = normalize_vj_id(row["vj_id"])
                     rows.append(row)
     return rows
 
@@ -75,13 +84,32 @@ def is_on_axis(stops: list[dict]) -> bool:
     return visited_groups >= 2
 
 
+def _row_quality(r: dict) -> tuple:
+    """Realtime > base_schedule > cancelled. Within the same tier, the most
+    recent observation (run_ts) wins so we keep the freshest delay value."""
+    if r.get("cancelled"):
+        return (0, r.get("run_ts", ""))
+    if r.get("freshness") == "realtime":
+        return (2, r.get("run_ts", ""))
+    return (1, r.get("run_ts", ""))
+
+
 def build_journeys(rows: list[dict]) -> dict[str, list[dict]]:
-    by_vj: dict[str, list[dict]] = defaultdict(list)
+    """Group rows by canonical vj_id, keeping only the best-quality row per
+    (stop, kind, base_dt) so the same train doesn't appear multiple times when
+    Navitia issued several realtime variants."""
+    by_vj: dict[str, dict[tuple, dict]] = defaultdict(dict)
     for r in rows:
-        by_vj[r["vj_id"]].append(r)
-    for stops in by_vj.values():
+        ev_key = (r["stop_id"], r["kind"], r["base_dt"])
+        prev = by_vj[r["vj_id"]].get(ev_key)
+        if prev is None or _row_quality(r) > _row_quality(prev):
+            by_vj[r["vj_id"]][ev_key] = r
+    out: dict[str, list[dict]] = {}
+    for vj, events in by_vj.items():
+        stops = list(events.values())
         stops.sort(key=lambda x: x["base_dt"])
-    return by_vj
+        out[vj] = stops
+    return out
 
 
 def find_stop(stops: list[dict], stop_id: str, kind: str) -> dict | None:
