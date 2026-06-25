@@ -18,6 +18,7 @@ from typing import Callable
 
 DATA_DIR = pathlib.Path("data")
 OUT_FILE = pathlib.Path("STATS.md")
+DETAIL_FILE = pathlib.Path("DETAIL.md")
 
 PARIS_TZ = timezone(timedelta(hours=2))  # CEST; OK for summer, off by 1h in winter
 
@@ -456,13 +457,16 @@ def daily_lyon_lepuy_summary() -> list[dict]:
         ll = lyon_lepuy_journeys(all_conn)
         if not ll:
             continue
-        delays_min = sorted(j["total_delay_sec"] / 60 for j in ll)
+        delays_sec = sorted(j["total_delay_sec"] for j in ll)
         summaries.append({
             "date": date_str,
             "n": len(ll),
             "missed": sum(1 for j in ll if j["missed"]),
-            "median_min": median(delays_min),
-            "p90_min": percentile([d for d in delays_min], 90),
+            "p50_min": percentile(delays_sec, 50) / 60,
+            "p80_min": percentile(delays_sec, 80) / 60,
+            "p90_min": percentile(delays_sec, 90) / 60,
+            "p95_min": percentile(delays_sec, 95) / 60,
+            "p99_min": percentile(delays_sec, 99) / 60,
         })
     return summaries
 
@@ -526,6 +530,15 @@ def percentile(values: list[float], p: float) -> float:
 
 def train_label(stops: list[dict]) -> str:
     return stops[-1].get("train_name") or stops[-1].get("vj_id", "?")
+
+
+def format_dest(s: str) -> str:
+    """Annotate Ambérieu destinations with the via-Lyon Part-Dieu routing so
+    readers know the train doesn't go there directly from Saint-Étienne."""
+    if "ambérieu" in s.lower():
+        base = s.split(" (")[0]
+        return f"{base} (via Lyon Part-Dieu)"
+    return s
 
 
 def write_no_data() -> None:
@@ -653,76 +666,117 @@ def main() -> None:
             js = per_dir.get(direction, [])
             if not js:
                 continue
-            delays = [j["total_delay_sec"] for j in js]
+            delays_sec = sorted(j["total_delay_sec"] for j in js)
             n_missed = sum(1 for j in js if j["missed"])
+            n_over_5 = sum(1 for d in delays_sec if d > 300)
+            pct_over_5 = n_over_5 / len(js) * 100
             lines.append(f"### {direction}")
             lines.append("")
             lines.append(
-                f"{len(js)} trajets, {n_missed} correspondance(s) loupée(s), "
-                f"médiane retard arrivée : {median(delays) / 60:.1f} min."
+                f"{len(js)} trajets, {n_missed} correspondance(s) loupée(s). "
+                f"**{pct_over_5:.1f} %** des trajets avec un retard d'arrivée > 5 min."
             )
             lines.append("")
             pct_rows = []
-            n = len(delays)
-            for threshold_min in (5, 15, 30, 45):
-                threshold_sec = threshold_min * 60
-                n_over = sum(1 for d in delays if d > threshold_sec)
-                pct = n_over / n * 100
-                pct_rows.append([f"{pct:.1f} %", f"> {threshold_min} min"])
-            lines.append(fmt_table(["% trajets", "Retard arrivée"], pct_rows))
+            for p in (50, 80, 90, 95, 99):
+                v_min = percentile(delays_sec, p) / 60
+                label = "à l'heure" if v_min < 0.5 else f"≤ {v_min:.0f} min"
+                pct_rows.append([f"{p} %", label])
+            lines.append(fmt_table(["Percentile", "Retard arrivée"], pct_rows))
             lines.append("")
 
-    # Daily evolution chart: merge Lyon → Le Puy and Le Puy → Lyon directions.
+    # Daily evolution: merge Lyon → Le Puy and Le Puy → Lyon directions.
     daily = daily_lyon_lepuy_summary()
     if daily:
         lines.append("## Évolution quotidienne Lyon ↔ Le Puy")
         lines.append("")
         lines.append(
-            "Retard médian à l'arrivée par jour, les deux sens fusionnés. La "
-            "ligne intègre le retard ressenti en cas de correspondance loupée "
-            "à Saint-Étienne (= attente du prochain train pris)."
+            "Retard à l'arrivée par jour, les deux sens fusionnés. Le retard "
+            "intègre l'effet d'une correspondance loupée à Saint-Étienne "
+            "(= attente du prochain train pris)."
         )
         lines.append("")
-        # Build a Mermaid xychart-beta (GitHub renders it natively).
-        dates = [d["date"][-5:] for d in daily]  # short DD-MM
-        medians = [d["median_min"] for d in daily]
+        dates = [d["date"][-5:] for d in daily]
+        x_axis = "[" + ", ".join(f'"{d}"' for d in dates) + "]"
+
+        def mermaid_line(title: str, values: list[float], y_min: int = 0) -> list[str]:
+            y_max = max(10, max(values) * 1.2) if values else 10
+            return [
+                "```mermaid",
+                "xychart-beta",
+                f'    title "{title}"',
+                f"    x-axis {x_axis}",
+                f'    y-axis "Retard (min)" {y_min} --> {y_max:.0f}',
+                "    line [" + ", ".join(f"{v:.1f}" for v in values) + "]",
+                "```",
+            ]
+
         p90s = [d["p90_min"] for d in daily]
-        y_max = max(20, max(p90s) * 1.2)
-        lines.append("```mermaid")
-        lines.append("xychart-beta")
-        lines.append('    title "Retard à l\'arrivée Lyon ↔ Le Puy (min)"')
-        lines.append("    x-axis [" + ", ".join(f'"{d}"' for d in dates) + "]")
-        lines.append(f'    y-axis "Retard (min)" 0 --> {y_max:.0f}')
-        lines.append("    line [" + ", ".join(f"{m:.1f}" for m in medians) + "]")
-        lines.append("```")
+        p95s = [d["p95_min"] for d in daily]
+        p99s = [d["p99_min"] for d in daily]
+
+        lines.append("### P90 par jour _(le 10 % le plus en retard reste sous cette barre)_")
         lines.append("")
-        # Small table underneath for the underlying numbers + p90 + missed count.
+        lines.extend(mermaid_line("P90 retard Lyon ↔ Le Puy (min)", p90s))
+        lines.append("")
+        lines.append("### P99 par jour _(le pire 1 %, dominé par les correspondances loupées)_")
+        lines.append("")
+        lines.extend(mermaid_line("P99 retard Lyon ↔ Le Puy (min)", p99s))
+        lines.append("")
+
+        # Daily percentile table — full breakdown 50/80/90/95/99 per day.
+        lines.append("### Percentiles par jour")
+        lines.append("")
+        def fmt(v: float) -> str:
+            return "à l'heure" if v < 0.5 else f"{v:.0f} min"
         daily_rows = []
         for d in daily:
             daily_rows.append([
                 d["date"],
                 str(d["n"]),
                 str(d["missed"]),
-                f"{d['median_min']:.0f} min" if d["median_min"] >= 0.5 else "à l'heure",
-                f"{d['p90_min']:.0f} min" if d["p90_min"] >= 0.5 else "à l'heure",
+                fmt(d["p50_min"]),
+                fmt(d["p80_min"]),
+                fmt(d["p90_min"]),
+                fmt(d["p95_min"]),
+                fmt(d["p99_min"]),
             ])
         lines.append(fmt_table(
-            ["Jour", "Trajets", "Loupées", "Médiane retard", "P90 retard"],
+            ["Jour", "Trajets", "Loupées", "P50", "P80", "P90", "P95", "P99"],
             daily_rows,
         ))
         lines.append("")
 
-    # Combined table: delayed + cancelled trains, sorted by effective delay.
-    disrupted: list[tuple[str, int, str]] = []  # (vj, effective_delay_sec, status)
+    # Stats file gets a pointer to the detail file.
+    lines.append(
+        f"📄 **Listes détaillées** (trains en retard + correspondances) : "
+        f"voir [DETAIL.md]({DETAIL_FILE.name})."
+    )
+    lines.append("")
+
+    OUT_FILE.write_text("\n".join(lines))
+
+    # DETAIL.md: lists pulled out of the stats dashboard.
+    detail: list[str] = []
+    detail.append("# Détails Lyon ↔ Le Puy")
+    detail.append("")
+    detail.append(
+        f"_Mis à jour le {now:%Y-%m-%d %H:%M UTC} — fenêtre des dernières "
+        f"{WINDOW_HOURS} heures. Trains REGIONAURA uniquement. "
+        f"Vue d'ensemble : [STATS.md]({OUT_FILE.name})._"
+    )
+    detail.append("")
+
+    disrupted: list[tuple[str, int, str]] = []
     for vj, d in delayed.items():
         disrupted.append((vj, d, "Retard"))
     for vj, d in cancelled.items():
         disrupted.append((vj, d if d is not None else -1, "ANNULÉ"))
     if disrupted:
-        lines.append("## Trains en retard ou annulés")
-        lines.append("")
+        detail.append("## Trains en retard ou annulés")
+        detail.append("")
         train_rows = []
-        for vj, eff_delay, status in sorted(disrupted, key=lambda x: -x[1])[:30]:
+        for vj, eff_delay, status in sorted(disrupted, key=lambda x: -x[1])[:50]:
             stops = journeys[vj]
             sched = origin_scheduled_dt(stops)
             hub = hub_delay_sec(stops)
@@ -738,27 +792,27 @@ def main() -> None:
                 train_label(stops),
                 sched.strftime("%d/%m") if sched else "?",
                 sched.strftime("%H:%M") if sched else "?",
-                origin_stop_name(stops),
-                (stops[-1].get("direction") or "?")[:40],
+                format_dest(origin_stop_name(stops)),
+                format_dest((stops[-1].get("direction") or "?")[:50]),
                 status,
                 delay_str,
                 hub_str,
             ])
-        lines.append(fmt_table(
+        detail.append(fmt_table(
             ["Train", "Jour", "Heure prévue", "Origine", "Destination", "Statut", "Retard ressenti", "Retard à St-Étienne"],
             train_rows,
         ))
-        lines.append("")
+        detail.append("")
 
     if all_conn:
-        lines.append("## Correspondances à St-Étienne Châteaucreux")
-        lines.append("")
-        lines.append(
+        detail.append("## Correspondances à St-Étienne Châteaucreux")
+        detail.append("")
+        detail.append(
             f"{len(all_conn)} correspondances analysées (toute destination), dont "
             f"**{len(missed)} loupées** (gap réel < {MIN_CONNECTION_GAP_MIN} min). "
             f"Fenêtre de candidat : {CONNECTION_WINDOW_MIN} min après l'arrivée prévue."
         )
-        lines.append("")
+        detail.append("")
         rows_out = []
 
         def conn_sort_key(c):
@@ -768,16 +822,14 @@ def main() -> None:
                 exp = int((c["intended_dep_real"] - c["intended_dep_base"]).total_seconds())
             return (-int(c["missed"]), -exp, c["scheduled_gap_min"])
 
-        # Show missed connections first (any number), then up to 30 on-time
-        # for visibility into normal operation.
         missed_sorted = [c for c in all_conn if c["missed"]]
         on_time_sorted = sorted(
             [c for c in all_conn if not c["missed"]],
             key=lambda c: c["scheduled_gap_min"],
-        )[:30]
+        )[:50]
         for c in sorted(missed_sorted, key=conn_sort_key) + on_time_sorted:
             inbound_name = train_label(c["inbound_stops"])
-            origin = origin_stop_name(c["inbound_stops"])
+            origin = format_dest(origin_stop_name(c["inbound_stops"]))
             day_str = c["arr_base"].strftime("%d/%m")
             arr_delay_sec = c.get("arr_delay_sec") or 0
             arr_str = c["arr_real"].strftime("%H:%M") + (
@@ -806,7 +858,7 @@ def main() -> None:
             else:
                 taken_name = "—"
                 taken_str = "—"
-            destination = c["intended_terminus"][:40]
+            destination = format_dest(c["intended_terminus"][:50])
             exp_str = f"+{max(0, exp_sec) // 60} min" if exp_sec is not None else "—"
             rows_out.append([
                 day_str,
@@ -819,15 +871,17 @@ def main() -> None:
                 status,
                 exp_str,
             ])
-        lines.append(fmt_table(
+        detail.append(fmt_table(
             ["Jour", "Train arr.", "Origine", "Arr. St-Étienne", "Train pris", "Destination", "Écart prévu", "Statut", "Retard ressenti"],
             rows_out,
         ))
-        lines.append("")
+        detail.append("")
 
-    OUT_FILE.write_text("\n".join(lines))
+    DETAIL_FILE.write_text("\n".join(detail))
+
     print(
-        f"Wrote {OUT_FILE} ({len(rows)} rows, {total_observed} trains, "
+        f"Wrote {OUT_FILE} + {DETAIL_FILE} "
+        f"({len(rows)} rows, {total_observed} trains, "
         f"{len(delayed)} delayed, {len(cancelled)} cancelled, "
         f"{len(missed)} missed connections)."
     )
