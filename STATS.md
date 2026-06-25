@@ -1,38 +1,43 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-06-25 13:59 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-06-25 14:09 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
-- **Trains observés** : 174
+- **Trains observés** : 172
 - **Trains annulés** : 3
-- **Trains en retard ≥ 5 min ou annulés** : 32 (18.4 %)
+- **Trains en retard ≥ 5 min ou annulés** : 32 (18.6 %)
 
-**Trains en retard à l'arrivée** _(hors correspondance, annulations comptées comme attente du train suivant)_ :
+- **Correspondances à St-Étienne Châteaucreux** : 253 analysées, **8 loupées** (3.2 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
-| % trains | Retard |
+## Distribution des retards à l'arrivée
+
+_Hors correspondance. Les annulations sont comptées au retard du prochain train de même direction._
+
+**9.3 % des trains arrivent avec un retard supérieur à 5 min.**
+
+| Percentile | Retard |
 |---|---|
-| 9.2 % | > 5 min |
-| 4.0 % | > 15 min |
-| 2.3 % | > 30 min |
-| 1.1 % | > 45 min |
-
-**Correspondances à St-Étienne Châteaucreux** : 253 analysées, **8 loupées** (3.2 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+| 50 % | à l'heure |
+| 80 % | à l'heure |
+| 90 % | ≤ 5 min |
+| 95 % | ≤ 15 min |
+| 99 % | ≤ 46 min |
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 
-54 trajets Lyon ↔ Le Puy analysés (2 avec correspondance loupée). Le retard ci-dessous est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
+53 trajets Lyon ↔ Le Puy analysés (2 avec correspondance loupée). Le retard ci-dessous est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
 
 ### Lyon → Le Puy
 
-34 trajets, 1 correspondance(s) loupée(s), médiane retard arrivée : 0.0 min.
+33 trajets, 1 correspondance(s) loupée(s), médiane retard arrivée : 0.0 min.
 
 | % trajets | Retard arrivée |
 |---|---|
-| 2.9 % | > 5 min |
-| 2.9 % | > 15 min |
-| 2.9 % | > 30 min |
-| 2.9 % | > 45 min |
+| 3.0 % | > 5 min |
+| 3.0 % | > 15 min |
+| 3.0 % | > 30 min |
+| 3.0 % | > 45 min |
 
 ### Le Puy → Lyon
 
@@ -44,6 +49,23 @@ _Mis à jour le 2026-06-25 13:59 UTC — fenêtre des dernières 24 heures. Trai
 | 5.0 % | > 15 min |
 | 5.0 % | > 30 min |
 | 5.0 % | > 45 min |
+
+## Évolution quotidienne Lyon ↔ Le Puy
+
+Retard médian à l'arrivée par jour, les deux sens fusionnés. La ligne intègre le retard ressenti en cas de correspondance loupée à Saint-Étienne (= attente du prochain train pris).
+
+```mermaid
+xychart-beta
+    title "Retard à l'arrivée Lyon ↔ Le Puy (min)"
+    x-axis ["06-24", "06-25"]
+    y-axis "Retard (min)" 0 --> 20
+    line [0.0, 0.0]
+```
+
+| Jour | Trajets | Loupées | Médiane retard | P90 retard |
+|---|---|---|---|---|
+| 2026-06-24 | 37 | 2 | à l'heure | à l'heure |
+| 2026-06-25 | 40 | 0 | à l'heure | à l'heure |
 
 ## Trains en retard ou annulés
 
@@ -104,6 +126,7 @@ _Mis à jour le 2026-06-25 13:59 UTC — fenêtre des dernières 24 heures. Trai
 | 24/06 | 886233 | Lyon Perrache | 17:56 | 889982 18:05 | Le Puy-en-Velay (Le Puy-en-Velay) | 9 min | à l'heure | +0 min |
 | 25/06 | 886233 | Lyon Perrache | 17:56 | 889982 18:05 | Le Puy-en-Velay (Le Puy-en-Velay) | 9 min | à l'heure | +0 min |
 | 24/06 | 886732 | Lyon Part Dieu | 17:10 | 886847 17:20 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +0 min |
+| 24/06 | 886734 | Meximieux - Pérouges | 17:40 | 886849 17:50 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +0 min |
 | 24/06 | 886736 | Lyon Part Dieu | 18:15 (+5m) | 886851 18:20 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +0 min |
 | 24/06 | 886744 | Lyon Part Dieu | 20:30 (+20m) | 886857 20:40 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +20 min |
 | 24/06 | 889979 | Le Puy-en-Velay | 19:10 | 886855 19:20 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +0 min |
@@ -123,4 +146,3 @@ _Mis à jour le 2026-06-25 13:59 UTC — fenêtre des dernières 24 heures. Trai
 | 25/06 | 886730 | Lyon Part Dieu | 16:10 | 886843 16:20 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +0 min |
 | 25/06 | 886764 | Lyon Part Dieu | 16:40 | 886845 16:50 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +0 min |
 | 25/06 | 886732 | Lyon Part Dieu | 17:10 | 886847 17:20 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +0 min |
-| 25/06 | 886736 | Lyon Part Dieu | 18:10 | 886851 18:20 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | à l'heure | +0 min |

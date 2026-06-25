@@ -432,6 +432,41 @@ def arrival_at(stops: list[dict], stop_id: str) -> tuple[datetime, datetime] | N
     return None
 
 
+def daily_lyon_lepuy_summary() -> list[dict]:
+    """One row per data day. Reads every data/<date>.jsonl.gz, builds
+    journeys for that day, and computes Lyon ↔ Le Puy aggregates (both
+    directions merged)."""
+    summaries: list[dict] = []
+    for f in sorted(DATA_DIR.glob("*.jsonl.gz")):
+        # Filename is YYYY-MM-DD.jsonl.gz; .stem strips the .gz, so .stem.replace strips .jsonl too.
+        date_str = f.stem.replace(".jsonl", "")
+        rows: list[dict] = []
+        with gzip.open(f, "rt", encoding="utf-8") as fh:
+            for line in fh:
+                row = json.loads(line)
+                if row.get("line_name") not in RELEVANT_LINES:
+                    continue
+                row["vj_id"] = normalize_vj_id(row["vj_id"])
+                rows.append(row)
+        if not rows:
+            continue
+        journeys = build_journeys(rows)
+        journeys = {v: s for v, s in journeys.items() if is_on_axis(s)}
+        all_conn = find_all_connections_at_ste(journeys)
+        ll = lyon_lepuy_journeys(all_conn)
+        if not ll:
+            continue
+        delays_min = sorted(j["total_delay_sec"] / 60 for j in ll)
+        summaries.append({
+            "date": date_str,
+            "n": len(ll),
+            "missed": sum(1 for j in ll if j["missed"]),
+            "median_min": median(delays_min),
+            "p90_min": percentile([d for d in delays_min], 90),
+        })
+    return summaries
+
+
 def lyon_lepuy_journeys(
     connections: list[dict],
 ) -> list[dict]:
@@ -567,30 +602,34 @@ def main() -> None:
         f"- **Trains en retard ≥ 5 min ou annulés** : {n_disrupted} ({pct_disrupted:.1f} %)"
     )
     lines.append("")
-    lines.append(
-        "**Trains en retard à l'arrivée** _(hors correspondance, annulations "
-        "comptées comme attente du train suivant)_ :"
-    )
-    lines.append("")
-    if all_delay_values:
-        n = len(all_delay_values)
-        pct_rows = []
-        for threshold_min in (5, 15, 30, 45):
-            threshold_sec = threshold_min * 60
-            n_over = sum(1 for d in all_delay_values if d > threshold_sec)
-            pct = n_over / n * 100
-            pct_rows.append([f"{pct:.1f} %", f"> {threshold_min} min"])
-        lines.append(fmt_table(["% trains", "Retard"], pct_rows))
-    else:
-        lines.append("_(pas assez de données)_")
-    lines.append("")
     if all_conn:
         pct_missed = len(missed) / len(all_conn) * 100
         lines.append(
-            f"**Correspondances à St-Étienne Châteaucreux** : {len(all_conn)} analysées, "
-            f"**{len(missed)} loupées** ({pct_missed:.1f} %). Médiane retard "
-            f"ressenti à St-Étienne : {med_exp_min:.1f} min."
+            f"- **Correspondances à St-Étienne Châteaucreux** : {len(all_conn)} analysées, "
+            f"**{len(missed)} loupées** ({pct_missed:.1f} %). Médiane retard ressenti à "
+            f"St-Étienne : {med_exp_min:.1f} min."
         )
+        lines.append("")
+
+    if all_delay_values:
+        lines.append("## Distribution des retards à l'arrivée")
+        lines.append("")
+        lines.append(
+            "_Hors correspondance. Les annulations sont comptées au retard du "
+            "prochain train de même direction._"
+        )
+        lines.append("")
+        n = len(all_delay_values)
+        n_over_5 = sum(1 for d in all_delay_values if d > 300)
+        pct_5 = n_over_5 / n * 100
+        lines.append(f"**{pct_5:.1f} % des trains arrivent avec un retard supérieur à 5 min.**")
+        lines.append("")
+        pct_rows = []
+        for p in (50, 80, 90, 95, 99):
+            v_min = percentile(all_delay_values, p) / 60
+            label = "à l'heure" if v_min < 0.5 else f"≤ {v_min:.0f} min"
+            pct_rows.append([f"{p} %", label])
+        lines.append(fmt_table(["Percentile", "Retard"], pct_rows))
         lines.append("")
 
     # Focus Lyon ↔ Le Puy: experienced delay at the FINAL destination,
@@ -632,6 +671,46 @@ def main() -> None:
                 pct_rows.append([f"{pct:.1f} %", f"> {threshold_min} min"])
             lines.append(fmt_table(["% trajets", "Retard arrivée"], pct_rows))
             lines.append("")
+
+    # Daily evolution chart: merge Lyon → Le Puy and Le Puy → Lyon directions.
+    daily = daily_lyon_lepuy_summary()
+    if daily:
+        lines.append("## Évolution quotidienne Lyon ↔ Le Puy")
+        lines.append("")
+        lines.append(
+            "Retard médian à l'arrivée par jour, les deux sens fusionnés. La "
+            "ligne intègre le retard ressenti en cas de correspondance loupée "
+            "à Saint-Étienne (= attente du prochain train pris)."
+        )
+        lines.append("")
+        # Build a Mermaid xychart-beta (GitHub renders it natively).
+        dates = [d["date"][-5:] for d in daily]  # short DD-MM
+        medians = [d["median_min"] for d in daily]
+        p90s = [d["p90_min"] for d in daily]
+        y_max = max(20, max(p90s) * 1.2)
+        lines.append("```mermaid")
+        lines.append("xychart-beta")
+        lines.append('    title "Retard à l\'arrivée Lyon ↔ Le Puy (min)"')
+        lines.append("    x-axis [" + ", ".join(f'"{d}"' for d in dates) + "]")
+        lines.append(f'    y-axis "Retard (min)" 0 --> {y_max:.0f}')
+        lines.append("    line [" + ", ".join(f"{m:.1f}" for m in medians) + "]")
+        lines.append("```")
+        lines.append("")
+        # Small table underneath for the underlying numbers + p90 + missed count.
+        daily_rows = []
+        for d in daily:
+            daily_rows.append([
+                d["date"],
+                str(d["n"]),
+                str(d["missed"]),
+                f"{d['median_min']:.0f} min" if d["median_min"] >= 0.5 else "à l'heure",
+                f"{d['p90_min']:.0f} min" if d["p90_min"] >= 0.5 else "à l'heure",
+            ])
+        lines.append(fmt_table(
+            ["Jour", "Trajets", "Loupées", "Médiane retard", "P90 retard"],
+            daily_rows,
+        ))
+        lines.append("")
 
     # Combined table: delayed + cancelled trains, sorted by effective delay.
     disrupted: list[tuple[str, int, str]] = []  # (vj, effective_delay_sec, status)
