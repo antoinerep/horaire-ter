@@ -646,44 +646,34 @@ def main() -> None:
         lines.append("")
 
     # Focus Lyon ↔ Le Puy: experienced delay at the FINAL destination,
-    # including the effect of missed correspondences.
+    # including the effect of missed correspondences. Both directions merged.
     ll_journeys = lyon_lepuy_journeys(all_conn)
     if ll_journeys:
         lines.append("## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)")
         lines.append("")
         n_ll = len(ll_journeys)
         n_ll_missed = sum(1 for j in ll_journeys if j["missed"])
-        per_dir: dict[str, list[dict]] = defaultdict(list)
-        for j in ll_journeys:
-            per_dir[j["direction"]].append(j)
+        delays_sec = sorted(j["total_delay_sec"] for j in ll_journeys)
+        n_over_5 = sum(1 for d in delays_sec if d > 300)
+        pct_over_5 = n_over_5 / n_ll * 100
         lines.append(
-            f"{n_ll} trajets Lyon ↔ Le Puy analysés ({n_ll_missed} avec correspondance loupée). "
-            f"Le retard ci-dessous est mesuré à la gare d'arrivée finale, en prenant le train "
-            f"de substitution si la correspondance à Saint-Étienne a été ratée."
+            f"{n_ll} trajets analysés (les deux sens fusionnés), dont "
+            f"{n_ll_missed} avec correspondance loupée. Le retard est mesuré à la "
+            f"gare d'arrivée finale, en prenant le train de substitution si la "
+            f"correspondance à Saint-Étienne a été ratée."
         )
         lines.append("")
-        for direction in ("Lyon → Le Puy", "Le Puy → Lyon"):
-            js = per_dir.get(direction, [])
-            if not js:
-                continue
-            delays_sec = sorted(j["total_delay_sec"] for j in js)
-            n_missed = sum(1 for j in js if j["missed"])
-            n_over_5 = sum(1 for d in delays_sec if d > 300)
-            pct_over_5 = n_over_5 / len(js) * 100
-            lines.append(f"### {direction}")
-            lines.append("")
-            lines.append(
-                f"{len(js)} trajets, {n_missed} correspondance(s) loupée(s). "
-                f"**{pct_over_5:.1f} %** des trajets avec un retard d'arrivée > 5 min."
-            )
-            lines.append("")
-            pct_rows = []
-            for p in (50, 80, 90, 95, 99):
-                v_min = percentile(delays_sec, p) / 60
-                label = "à l'heure" if v_min < 0.5 else f"≤ {v_min:.0f} min"
-                pct_rows.append([f"{p} %", label])
-            lines.append(fmt_table(["Percentile", "Retard arrivée"], pct_rows))
-            lines.append("")
+        lines.append(
+            f"**{pct_over_5:.1f} %** des trajets avec un retard d'arrivée > 5 min."
+        )
+        lines.append("")
+        pct_rows = []
+        for p in (50, 80, 90, 95, 99):
+            v_min = percentile(delays_sec, p) / 60
+            label = "à l'heure" if v_min < 0.5 else f"≤ {v_min:.0f} min"
+            pct_rows.append([f"{p} %", label])
+        lines.append(fmt_table(["Percentile", "Retard arrivée"], pct_rows))
+        lines.append("")
 
     # Daily evolution: merge Lyon → Le Puy and Le Puy → Lyon directions.
     daily = daily_lyon_lepuy_summary()
