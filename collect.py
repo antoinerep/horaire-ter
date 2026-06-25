@@ -187,7 +187,17 @@ def fetch_stops(
                 "kind_origin": kind,  # "departures" or "arrivals" call origin
                 "cancelled": False,
             }
-            if base_dep is not None:
+            # If arrival and departure times match (terminus stop with no dwell
+            # time), pick the kind by which endpoint we called — /departures
+            # implies an origin (dep), /arrivals implies a terminus (arr).
+            single_time = (
+                base_dep is not None
+                and base_arr is not None
+                and base_dep == base_arr
+            )
+            emit_dep = base_dep is not None and (not single_time or kind == "dep_origin")
+            emit_arr = base_arr is not None and (not single_time or kind == "arr_origin")
+            if emit_dep:
                 yield {
                     **common,
                     "kind": "dep",
@@ -195,7 +205,7 @@ def fetch_stops(
                     "realtime_dt": real_dep.isoformat() if real_dep else None,
                     "delay_sec": delay_seconds(base_dep, real_dep),
                 }
-            if base_arr is not None and base_arr != base_dep:
+            if emit_arr:
                 yield {
                     **common,
                     "kind": "arr",

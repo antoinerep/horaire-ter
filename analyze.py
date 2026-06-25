@@ -119,32 +119,48 @@ def find_stop(stops: list[dict], stop_id: str, kind: str) -> dict | None:
     return None
 
 
+def best_event(stops: list[dict], stop_id: str, preferred_kind: str) -> dict | None:
+    """Return the event at stop_id matching preferred_kind, falling back to
+    any kind at the same stop. Recovers terminus events that were emitted
+    under the opposite kind label by older collect.py runs."""
+    primary = find_stop(stops, stop_id, preferred_kind)
+    if primary:
+        return primary
+    return next((s for s in stops if s["stop_id"] == stop_id), None)
+
+
+def visits(stops: list[dict], stop_id: str) -> dict | None:
+    """First event observed at a given stop, regardless of kind. Robust to
+    the terminus quirk where arrival/departure share a single timestamp."""
+    return next((s for s in stops if s["stop_id"] == stop_id), None)
+
+
+def visits_group(stops: list[dict], group: set[str]) -> dict | None:
+    return next((s for s in stops if s["stop_id"] in group), None)
+
+
 def from_lyon_to_ste(stops: list[dict]) -> bool:
-    ste_arr = find_stop(stops, STE_HUB, "arr")
-    if not ste_arr:
-        return False
-    lyon = next((s for s in stops if s["stop_id"] in LYON_STOPS), None)
-    return bool(lyon and lyon["base_dt"] < ste_arr["base_dt"])
+    ste = visits(stops, STE_HUB)
+    lyon = visits_group(stops, LYON_STOPS)
+    return bool(ste and lyon and lyon["base_dt"] < ste["base_dt"])
 
 
 def from_ste_to_lepuy(stops: list[dict]) -> bool:
-    ste_dep = find_stop(stops, STE_HUB, "dep")
-    le_puy_arr = find_stop(stops, LE_PUY, "arr")
-    return bool(ste_dep and le_puy_arr and ste_dep["base_dt"] < le_puy_arr["base_dt"])
+    ste = visits(stops, STE_HUB)
+    le_puy = visits(stops, LE_PUY)
+    return bool(ste and le_puy and ste["base_dt"] < le_puy["base_dt"])
 
 
 def from_lepuy_to_ste(stops: list[dict]) -> bool:
-    ste_arr = find_stop(stops, STE_HUB, "arr")
-    le_puy_dep = find_stop(stops, LE_PUY, "dep")
-    return bool(ste_arr and le_puy_dep and le_puy_dep["base_dt"] < ste_arr["base_dt"])
+    ste = visits(stops, STE_HUB)
+    le_puy = visits(stops, LE_PUY)
+    return bool(ste and le_puy and le_puy["base_dt"] < ste["base_dt"])
 
 
 def from_ste_to_lyon(stops: list[dict]) -> bool:
-    ste_dep = find_stop(stops, STE_HUB, "dep")
-    if not ste_dep:
-        return False
-    lyon_arrs = [s for s in stops if s["stop_id"] in LYON_STOPS and s["kind"] == "arr"]
-    return any(ste_dep["base_dt"] < la["base_dt"] for la in lyon_arrs)
+    ste = visits(stops, STE_HUB)
+    lyon = visits_group(stops, LYON_STOPS)
+    return bool(ste and lyon and ste["base_dt"] < lyon["base_dt"])
 
 
 def max_arrival_delay(stops: list[dict]) -> int | None:
@@ -233,7 +249,7 @@ def find_connections(
     outbound: list[dict] = []
     for vj, stops in journeys.items():
         if outbound_filter(stops):
-            d = find_stop(stops, STE_HUB, "dep")
+            d = best_event(stops, STE_HUB, "dep")
             if d and not d.get("cancelled"):
                 outbound.append({"vj_id": vj, "stop": d, "stops": stops})
     outbound.sort(key=lambda x: x["stop"]["base_dt"])
@@ -242,8 +258,8 @@ def find_connections(
     for vj, stops in journeys.items():
         if not inbound_filter(stops):
             continue
-        a = find_stop(stops, STE_HUB, "arr")
-        if not a or a.get("cancelled") or a.get("delay_sec") is None:
+        a = best_event(stops, STE_HUB, "arr")
+        if not a or a.get("cancelled"):
             continue
         a_base = parse_dt(a["base_dt"])
         a_real = parse_dt(a.get("realtime_dt")) or a_base
@@ -296,6 +312,18 @@ def fmt_table(headers: list[str], rows: list[list[str]]) -> str:
     for r in rows:
         out.append("| " + " | ".join(str(x) for x in r) + " |")
     return "\n".join(out)
+
+
+def percentile(values: list[float], p: float) -> float:
+    """Linear-interpolation percentile (matches numpy default)."""
+    if not values:
+        return 0.0
+    s = sorted(values)
+    k = (len(s) - 1) * (p / 100.0)
+    f = int(k)
+    if f >= len(s) - 1:
+        return float(s[-1])
+    return s[f] + (s[f + 1] - s[f]) * (k - f)
 
 
 def train_label(stops: list[dict]) -> str:
@@ -377,21 +405,30 @@ def main() -> None:
     lines.append(
         f"- **Trains en retard ≥ 5 min ou annulés** : {n_disrupted} ({pct_disrupted:.1f} %)"
     )
+    lines.append("")
     lines.append(
-        f"- **Médiane retard à l'arrivée (sans correspondance, "
-        f"annulations comptées comme attente train suivant)** : {med_delay_min:.1f} min"
+        "**Distribution des retards à l'arrivée** _(hors correspondance, "
+        "annulations comptées comme attente du train suivant)_ :"
     )
+    lines.append("")
+    if all_delay_values:
+        pct_rows = []
+        for p in (50, 75, 90, 95, 99):
+            v_min = percentile(all_delay_values, p) / 60
+            label = "à l'heure" if v_min < 0.5 else f"retard ≤ {v_min:.1f} min"
+            pct_rows.append([f"{p} %", label])
+        lines.append(fmt_table(["Percentile", "Trains au-dessous"], pct_rows))
+    else:
+        lines.append("_(pas assez de données)_")
+    lines.append("")
     if all_conn:
         pct_missed = len(missed) / len(all_conn) * 100
         lines.append(
-            f"- **Correspondances loupées à St-Étienne** : {len(missed)} / {len(all_conn)} "
-            f"({pct_missed:.1f} %)"
+            f"**Correspondances à St-Étienne Châteaucreux** : {len(all_conn)} analysées, "
+            f"**{len(missed)} loupées** ({pct_missed:.1f} %). Médiane retard "
+            f"ressenti à St-Étienne : {med_exp_min:.1f} min."
         )
-        lines.append(
-            f"- **Médiane retard ressenti à St-Étienne (avec correspondance)** : "
-            f"{med_exp_min:.1f} min"
-        )
-    lines.append("")
+        lines.append("")
 
     # Combined table: delayed + cancelled trains, sorted by effective delay.
     disrupted: list[tuple[str, int, str]] = []  # (vj, effective_delay_sec, status)
@@ -431,31 +468,76 @@ def main() -> None:
         ))
         lines.append("")
 
-    if missed:
-        lines.append("## Correspondances loupées à St-Étienne Châteaucreux")
+    if all_conn:
+        # Tag each connection with its direction so we can show "Lyon → Le Puy"
+        # vs "Le Puy → Lyon" in the table.
+        for c in conn_to_lepuy:
+            c["sens"] = "Lyon → Le Puy"
+        for c in conn_to_lyon:
+            c["sens"] = "Le Puy → Lyon"
+
+        lines.append("## Correspondances à St-Étienne Châteaucreux")
+        lines.append("")
+        lines.append(
+            f"{len(all_conn)} correspondances observées, dont **{len(missed)} loupées** "
+            f"(gap < {MIN_CONNECTION_GAP_MIN} min après l'arrivée réelle)."
+        )
         lines.append("")
         rows_out = []
-        for c in sorted(missed, key=lambda x: x["arr_real"]):
-            inbound = train_label(c["inbound_stops"])
-            intended = train_label(c["intended_stops"])
-            arr_str = c["arr_real"].strftime("%d/%m %H:%M") + f" (+{c['arr_delay_sec'] // 60}m)"
-            if "next_dep_real" in c:
-                nxt = train_label(c["next_stops"])
-                nxt_str = c["next_dep_real"].strftime("%H:%M")
-                added = f"+{c['added_delay_sec'] // 60} min"
+        # Show missed first, then on-time, ordered by experienced delay desc
+        def conn_sort_key(c):
+            if c["missed"] and "next_dep_real" in c:
+                exp = c["added_delay_sec"]
             else:
-                nxt = "—"
-                nxt_str = "(hors fenêtre)"
-                added = "—"
+                exp = int((c["intended_dep_real"] - c["intended_dep_base"]).total_seconds())
+            return (-int(c["missed"]), -exp)
+
+        for c in sorted(all_conn, key=conn_sort_key)[:30]:
+            sens = c.get("sens", "?")
+            inbound_name = train_label(c["inbound_stops"])
+            origin = origin_stop_name(c["inbound_stops"])
+            day_str = c["arr_base"].strftime("%d/%m")
+            arr_delay_sec = c.get("arr_delay_sec") or 0
+            arr_str = c["arr_real"].strftime("%H:%M") + (
+                f" (+{arr_delay_sec // 60}m)" if arr_delay_sec >= 60 else ""
+            )
+            if c["missed"]:
+                if "next_dep_real" in c:
+                    taken_stops = c["next_stops"]
+                    taken_real = c["next_dep_real"]
+                    exp_sec = c["added_delay_sec"]
+                    status = "LOUPÉE"
+                else:
+                    taken_stops = None
+                    exp_sec = None
+                    status = "LOUPÉE (hors fenêtre)"
+            else:
+                taken_stops = c["intended_stops"]
+                taken_real = c["intended_dep_real"]
+                exp_sec = int((c["intended_dep_real"] - c["intended_dep_base"]).total_seconds())
+                status = "à l'heure"
+            if taken_stops is not None:
+                taken_name = train_label(taken_stops)
+                taken_dest = (taken_stops[-1].get("direction") or "?")[:40]
+                taken_str = f"{taken_name} {taken_real:%H:%M}"
+            else:
+                taken_name = "—"
+                taken_dest = "—"
+                taken_str = "—"
+            exp_str = f"+{max(0, exp_sec) // 60} min" if exp_sec is not None else "—"
             rows_out.append([
-                inbound,
+                day_str,
+                sens,
+                inbound_name,
+                origin,
                 arr_str,
-                f"{intended} ({c['intended_dep_real']:%H:%M})",
-                f"{nxt} ({nxt_str})",
-                added,
+                taken_str,
+                taken_dest,
+                status,
+                exp_str,
             ])
         lines.append(fmt_table(
-            ["Train arrivée", "Arr. réelle", "Correspondance prévue", "Correspondance prise", "Retard ajouté"],
+            ["Jour", "Sens", "Train arr.", "Origine", "Arr. St-Étienne", "Train pris", "Destination", "Statut", "Retard ressenti"],
             rows_out,
         ))
         lines.append("")
