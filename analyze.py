@@ -420,6 +420,63 @@ def fmt_table(headers: list[str], rows: list[list[str]]) -> str:
     return "\n".join(out)
 
 
+def arrival_at(stops: list[dict], stop_id: str) -> tuple[datetime, datetime] | None:
+    """Find the train's arrival at a given stop. Returns (scheduled, realtime),
+    or None if the stop isn't on the train's journey."""
+    for s in stops:
+        if s["stop_id"] == stop_id:
+            base = parse_dt(s["base_dt"])
+            real = parse_dt(s.get("realtime_dt")) or base
+            if base and real:
+                return base, real
+    return None
+
+
+def lyon_lepuy_journeys(
+    connections: list[dict],
+) -> list[dict]:
+    """Filter Saint-Étienne connections to the Lyon ↔ Le Puy axis, then
+    compute the user's experienced delay at the FINAL destination (Le Puy or
+    Lyon), accounting for missed correspondences by following through to the
+    next train actually taken."""
+    out: list[dict] = []
+    for c in connections:
+        inbound_origin_id = c["inbound_stops"][0]["stop_id"]
+        outbound_dest_id = c["intended_stops"][-1]["stop_id"]
+        if inbound_origin_id in LYON_STOPS and outbound_dest_id == LE_PUY:
+            direction = "Lyon → Le Puy"
+        elif inbound_origin_id == LE_PUY and outbound_dest_id in LYON_STOPS:
+            direction = "Le Puy → Lyon"
+        else:
+            continue
+
+        if c["missed"]:
+            taken = c.get("next_stops")
+            if taken is None:
+                continue  # fallback not found, can't compute total delay
+        else:
+            taken = c["intended_stops"]
+
+        intended_arr = arrival_at(c["intended_stops"], outbound_dest_id)
+        taken_arr = arrival_at(taken, outbound_dest_id)
+        if intended_arr is None or taken_arr is None:
+            continue
+
+        scheduled_arr_at_dest = intended_arr[0]  # what user expected at destination
+        actual_arr_at_dest = taken_arr[1]        # what the user actually got
+        total_delay_sec = int((actual_arr_at_dest - scheduled_arr_at_dest).total_seconds())
+        out.append({
+            "direction": direction,
+            "missed": c["missed"],
+            "total_delay_sec": max(0, total_delay_sec),
+            "arr_base": c["arr_base"],
+            "inbound_train": train_label(c["inbound_stops"]),
+            "intended_leg2": train_label(c["intended_stops"]),
+            "taken_leg2": train_label(taken),
+        })
+    return out
+
+
 def percentile(values: list[float], p: float) -> float:
     """Linear-interpolation percentile (matches numpy default)."""
     if not values:
@@ -511,17 +568,19 @@ def main() -> None:
     )
     lines.append("")
     lines.append(
-        "**Distribution des retards à l'arrivée** _(hors correspondance, "
-        "annulations comptées comme attente du train suivant)_ :"
+        "**Trains en retard à l'arrivée** _(hors correspondance, annulations "
+        "comptées comme attente du train suivant)_ :"
     )
     lines.append("")
     if all_delay_values:
+        n = len(all_delay_values)
         pct_rows = []
-        for p in (50, 75, 90, 95, 99):
-            v_min = percentile(all_delay_values, p) / 60
-            label = "à l'heure" if v_min < 0.5 else f"retard ≤ {v_min:.1f} min"
-            pct_rows.append([f"{p} %", label])
-        lines.append(fmt_table(["Percentile", "Trains au-dessous"], pct_rows))
+        for threshold_min in (5, 15, 30, 45):
+            threshold_sec = threshold_min * 60
+            n_over = sum(1 for d in all_delay_values if d > threshold_sec)
+            pct = n_over / n * 100
+            pct_rows.append([f"{pct:.1f} %", f"> {threshold_min} min"])
+        lines.append(fmt_table(["% trains", "Retard"], pct_rows))
     else:
         lines.append("_(pas assez de données)_")
     lines.append("")
@@ -533,6 +592,46 @@ def main() -> None:
             f"ressenti à St-Étienne : {med_exp_min:.1f} min."
         )
         lines.append("")
+
+    # Focus Lyon ↔ Le Puy: experienced delay at the FINAL destination,
+    # including the effect of missed correspondences.
+    ll_journeys = lyon_lepuy_journeys(all_conn)
+    if ll_journeys:
+        lines.append("## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)")
+        lines.append("")
+        n_ll = len(ll_journeys)
+        n_ll_missed = sum(1 for j in ll_journeys if j["missed"])
+        per_dir: dict[str, list[dict]] = defaultdict(list)
+        for j in ll_journeys:
+            per_dir[j["direction"]].append(j)
+        lines.append(
+            f"{n_ll} trajets Lyon ↔ Le Puy analysés ({n_ll_missed} avec correspondance loupée). "
+            f"Le retard ci-dessous est mesuré à la gare d'arrivée finale, en prenant le train "
+            f"de substitution si la correspondance à Saint-Étienne a été ratée."
+        )
+        lines.append("")
+        for direction in ("Lyon → Le Puy", "Le Puy → Lyon"):
+            js = per_dir.get(direction, [])
+            if not js:
+                continue
+            delays = [j["total_delay_sec"] for j in js]
+            n_missed = sum(1 for j in js if j["missed"])
+            lines.append(f"### {direction}")
+            lines.append("")
+            lines.append(
+                f"{len(js)} trajets, {n_missed} correspondance(s) loupée(s), "
+                f"médiane retard arrivée : {median(delays) / 60:.1f} min."
+            )
+            lines.append("")
+            pct_rows = []
+            n = len(delays)
+            for threshold_min in (5, 15, 30, 45):
+                threshold_sec = threshold_min * 60
+                n_over = sum(1 for d in delays if d > threshold_sec)
+                pct = n_over / n * 100
+                pct_rows.append([f"{pct:.1f} %", f"> {threshold_min} min"])
+            lines.append(fmt_table(["% trajets", "Retard arrivée"], pct_rows))
+            lines.append("")
 
     # Combined table: delayed + cancelled trains, sorted by effective delay.
     disrupted: list[tuple[str, int, str]] = []  # (vj, effective_delay_sec, status)
