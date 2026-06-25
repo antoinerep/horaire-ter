@@ -39,7 +39,7 @@ AXIS_HUBS = (
 WINDOW_HOURS = 24
 DELAY_THRESHOLD_SEC = 300  # 5 min = SNCF "en retard" threshold
 MIN_CONNECTION_GAP_MIN = 3  # User's rule: less than 3 min = missed
-CONNECTION_WINDOW_MIN = 60  # Look for next train within this window
+CONNECTION_WINDOW_MIN = 30  # Realistic marketed-correspondence window
 
 RELEVANT_LINES = {"REGIONAURA"}
 
@@ -239,6 +239,108 @@ def substitute_delay_sec(stops: list[dict], all_journeys: dict[str, list[dict]])
     return int((next_real - cancelled_base).total_seconds())
 
 
+def find_all_connections_at_ste(
+    journeys: dict[str, list[dict]],
+    window_min: int = CONNECTION_WINDOW_MIN,
+) -> list[dict]:
+    """For every train arriving at Saint-Étienne, list its candidate
+    correspondences (first outbound per unique destination terminus within
+    `window_min` minutes of scheduled arrival). Returns one row per
+    (inbound, outbound destination)."""
+
+    # Build sorted outbound candidates with their destinations.
+    outbounds: list[dict] = []
+    for vj, stops in journeys.items():
+        d = best_event(stops, STE_HUB, "dep")
+        if not d or d.get("cancelled"):
+            continue
+        terminus = (stops[-1].get("direction") or stops[-1].get("stop_name") or "?").strip()
+        # Skip trains that terminate at Saint-Étienne (they don't go anywhere
+        # else, so a transfer makes no sense).
+        if stops[-1]["stop_id"] == STE_HUB:
+            continue
+        outbounds.append({"vj_id": vj, "stops": stops, "stop": d, "terminus": terminus})
+    outbounds.sort(key=lambda x: x["stop"]["base_dt"])
+
+    results: list[dict] = []
+    for vj, stops in journeys.items():
+        a = best_event(stops, STE_HUB, "arr")
+        if not a or a.get("cancelled"):
+            continue
+        # Skip trains that originate at Saint-Étienne (no real "arrival").
+        if stops[0]["stop_id"] == STE_HUB:
+            continue
+        a_base = parse_dt(a["base_dt"])
+        a_real = parse_dt(a.get("realtime_dt")) or a_base
+        inbound_terminus = (stops[-1].get("direction") or "").strip()
+        inbound_origin_id = stops[0]["stop_id"]
+        inbound_in_lyon = inbound_origin_id in LYON_STOPS
+
+        seen_destinations: set[str] = set()
+        for d_entry in outbounds:
+            if d_entry["vj_id"] == vj:
+                continue  # same train, not a transfer
+            d_base = parse_dt(d_entry["stop"]["base_dt"])
+            if d_base <= a_base:
+                continue
+            gap_min = (d_base - a_base).total_seconds() / 60
+            if gap_min > window_min:
+                break  # outbounds are sorted by base_dt — anything further is out of range
+            term = d_entry["terminus"]
+            outbound_dest_id = d_entry["stops"][-1]["stop_id"]
+            if term in seen_destinations:
+                continue  # already recorded the first outbound to this destination
+            if term == inbound_terminus:
+                continue  # inbound already goes there, transfer adds nothing
+            # Skip round-trips: transferring back to where the inbound came from
+            # makes no sense as a real connection.
+            if outbound_dest_id == inbound_origin_id:
+                continue
+            if inbound_in_lyon and outbound_dest_id in LYON_STOPS:
+                continue  # Lyon Part-Dieu ↔ Lyon Perrache via St-Étienne is silly
+            seen_destinations.add(term)
+            d_real = parse_dt(d_entry["stop"].get("realtime_dt")) or d_base
+            realtime_gap = (d_real - a_real).total_seconds() / 60
+            missed = realtime_gap < MIN_CONNECTION_GAP_MIN
+
+            entry = {
+                "inbound_vj": vj,
+                "inbound_stops": stops,
+                "arr_base": a_base,
+                "arr_real": a_real,
+                "arr_delay_sec": a.get("delay_sec") or 0,
+                "intended_vj": d_entry["vj_id"],
+                "intended_stops": d_entry["stops"],
+                "intended_dep_base": d_base,
+                "intended_dep_real": d_real,
+                "intended_terminus": term,
+                "scheduled_gap_min": gap_min,
+                "realtime_gap_min": realtime_gap,
+                "missed": missed,
+            }
+            if missed:
+                # Next non-cancelled outbound to the same terminus, regardless
+                # of how far in the future (capped at 3h to stay sane).
+                for nx in outbounds:
+                    if nx["vj_id"] == d_entry["vj_id"]:
+                        continue
+                    if nx["terminus"] != term:
+                        continue
+                    nx_base = parse_dt(nx["stop"]["base_dt"])
+                    if nx_base <= d_base:
+                        continue
+                    if (nx_base - d_base).total_seconds() > 3 * 3600:
+                        break
+                    nx_real = parse_dt(nx["stop"].get("realtime_dt")) or nx_base
+                    entry["next_vj"] = nx["vj_id"]
+                    entry["next_stops"] = nx["stops"]
+                    entry["next_dep_real"] = nx_real
+                    entry["added_delay_sec"] = int((nx_real - d_base).total_seconds())
+                    break
+            results.append(entry)
+    return results
+
+
 def find_connections(
     journeys: dict[str, list[dict]],
     inbound_filter: Callable[[list[dict]], bool],
@@ -374,9 +476,7 @@ def main() -> None:
     all_delay_values = list(delays.values()) + [d for d in cancelled.values() if d is not None]
     med_delay_min = (median(all_delay_values) / 60) if all_delay_values else 0.0
 
-    conn_to_lepuy = find_connections(journeys, from_lyon_to_ste, from_ste_to_lepuy)
-    conn_to_lyon = find_connections(journeys, from_lepuy_to_ste, from_ste_to_lyon)
-    all_conn = conn_to_lepuy + conn_to_lyon
+    all_conn = find_all_connections_at_ste(journeys)
     missed = [c for c in all_conn if c["missed"]]
 
     # User-experienced wait at St-Étienne for each transfer attempt.
@@ -469,31 +569,31 @@ def main() -> None:
         lines.append("")
 
     if all_conn:
-        # Tag each connection with its direction so we can show "Lyon → Le Puy"
-        # vs "Le Puy → Lyon" in the table.
-        for c in conn_to_lepuy:
-            c["sens"] = "Lyon → Le Puy"
-        for c in conn_to_lyon:
-            c["sens"] = "Le Puy → Lyon"
-
         lines.append("## Correspondances à St-Étienne Châteaucreux")
         lines.append("")
         lines.append(
-            f"{len(all_conn)} correspondances observées, dont **{len(missed)} loupées** "
-            f"(gap < {MIN_CONNECTION_GAP_MIN} min après l'arrivée réelle)."
+            f"{len(all_conn)} correspondances analysées (toute destination), dont "
+            f"**{len(missed)} loupées** (gap réel < {MIN_CONNECTION_GAP_MIN} min). "
+            f"Fenêtre de candidat : {CONNECTION_WINDOW_MIN} min après l'arrivée prévue."
         )
         lines.append("")
         rows_out = []
-        # Show missed first, then on-time, ordered by experienced delay desc
+
         def conn_sort_key(c):
             if c["missed"] and "next_dep_real" in c:
                 exp = c["added_delay_sec"]
             else:
                 exp = int((c["intended_dep_real"] - c["intended_dep_base"]).total_seconds())
-            return (-int(c["missed"]), -exp)
+            return (-int(c["missed"]), -exp, c["scheduled_gap_min"])
 
-        for c in sorted(all_conn, key=conn_sort_key)[:30]:
-            sens = c.get("sens", "?")
+        # Show missed connections first (any number), then up to 30 on-time
+        # for visibility into normal operation.
+        missed_sorted = [c for c in all_conn if c["missed"]]
+        on_time_sorted = sorted(
+            [c for c in all_conn if not c["missed"]],
+            key=lambda c: c["scheduled_gap_min"],
+        )[:30]
+        for c in sorted(missed_sorted, key=conn_sort_key) + on_time_sorted:
             inbound_name = train_label(c["inbound_stops"])
             origin = origin_stop_name(c["inbound_stops"])
             day_str = c["arr_base"].strftime("%d/%m")
@@ -501,6 +601,7 @@ def main() -> None:
             arr_str = c["arr_real"].strftime("%H:%M") + (
                 f" (+{arr_delay_sec // 60}m)" if arr_delay_sec >= 60 else ""
             )
+            sched_gap = f"{c['scheduled_gap_min']:.0f} min"
             if c["missed"]:
                 if "next_dep_real" in c:
                     taken_stops = c["next_stops"]
@@ -509,8 +610,9 @@ def main() -> None:
                     status = "LOUPÉE"
                 else:
                     taken_stops = None
+                    taken_real = None
                     exp_sec = None
-                    status = "LOUPÉE (hors fenêtre)"
+                    status = "LOUPÉE (hors fenêtre 3h)"
             else:
                 taken_stops = c["intended_stops"]
                 taken_real = c["intended_dep_real"]
@@ -518,26 +620,25 @@ def main() -> None:
                 status = "à l'heure"
             if taken_stops is not None:
                 taken_name = train_label(taken_stops)
-                taken_dest = (taken_stops[-1].get("direction") or "?")[:40]
                 taken_str = f"{taken_name} {taken_real:%H:%M}"
             else:
                 taken_name = "—"
-                taken_dest = "—"
                 taken_str = "—"
+            destination = c["intended_terminus"][:40]
             exp_str = f"+{max(0, exp_sec) // 60} min" if exp_sec is not None else "—"
             rows_out.append([
                 day_str,
-                sens,
                 inbound_name,
                 origin,
                 arr_str,
                 taken_str,
-                taken_dest,
+                destination,
+                sched_gap,
                 status,
                 exp_str,
             ])
         lines.append(fmt_table(
-            ["Jour", "Sens", "Train arr.", "Origine", "Arr. St-Étienne", "Train pris", "Destination", "Statut", "Retard ressenti"],
+            ["Jour", "Train arr.", "Origine", "Arr. St-Étienne", "Train pris", "Destination", "Écart prévu", "Statut", "Retard ressenti"],
             rows_out,
         ))
         lines.append("")
