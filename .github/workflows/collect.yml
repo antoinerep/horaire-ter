@@ -20,7 +20,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: collect
+  # Shared with analyze.yml so they serialize when they fire together
+  # (otherwise both push to main and one gets rejected).
+  group: write-main
   cancel-in-progress: false
 
 jobs:
@@ -56,7 +58,19 @@ jobs:
             exit 0
           fi
           git commit -m "data: collect $(date -u +%FT%H:%MZ)"
-          git push
+          # Concurrency should already prevent simultaneous pushes, but if a
+          # manual run lands at the same time as a cron run we still retry on
+          # rejection.
+          for i in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push attempt $i rejected, rebasing on origin/main and retrying..."
+            git pull --rebase --autostash origin main
+            sleep "$i"
+          done
+          echo "Push still failing after 5 attempts." >&2
+          exit 1
 
       - name: Heartbeat OK (healthchecks.io)
         if: success() && env.HEALTHCHECKS_URL != ''

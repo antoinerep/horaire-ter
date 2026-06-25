@@ -13,7 +13,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: analyze
+  # Shared with collect.yml so they serialize when they fire together.
+  group: write-main
   cancel-in-progress: false
 
 jobs:
@@ -38,4 +39,13 @@ jobs:
             exit 0
           fi
           git commit -m "stats: daily summary $(date -u +%F)"
-          git push
+          for i in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push attempt $i rejected, rebasing on origin/main and retrying..."
+            git pull --rebase --autostash origin main
+            sleep "$i"
+          done
+          echo "Push still failing after 5 attempts." >&2
+          exit 1
