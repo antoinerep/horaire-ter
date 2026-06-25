@@ -1,6 +1,6 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-06-25 17:26 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-06-25 17:29 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
@@ -12,9 +12,9 @@ _Mis à jour le 2026-06-25 17:26 UTC — fenêtre des dernières 24 heures. Trai
 
 ## Distribution des retards à l'arrivée
 
-_Hors correspondance. Les annulations sont comptées au retard du prochain train de même direction._
+**Périmètre :** TER REGIONAURA (Auvergne-Rhône-Alpes) sur l'axe Lyon ↔ Saint-Étienne ↔ Le Puy-en-Velay — trains qui passent par au moins 2 des 3 hubs (Lyon Part-Dieu/Perrache, Saint-Étienne Châteaucreux, Le Puy-en-Velay). Lignes C18 et P28 essentiellement. TGV, Intercités et trains hors-axe exclus. Annulations comptées au retard du prochain train de même direction. Hors correspondance (voir la section dédiée plus bas).
 
-**10.6 % des trains arrivent avec un retard supérieur à 5 min.**
+**10.6 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
 
 | Percentile | Retard |
 |---|---|
@@ -23,6 +23,33 @@ _Hors correspondance. Les annulations sont comptées au retard du prochain train
 | 90 % | ≤ 10 min |
 | 95 % | ≤ 15 min |
 | 99 % | ≤ 54 min |
+
+### P90 par jour _(le 10 % le plus en retard reste sous cette barre)_
+
+```mermaid
+xychart-beta
+    title "P90 retard à l'arrivée (min)"
+    x-axis ["06-24", "06-25"]
+    y-axis "Retard (min)" 0 --> 10
+    line [6.5, 6.5]
+```
+
+### P99 par jour _(le pire 1 %, dominé par les retards lourds et annulations)_
+
+```mermaid
+xychart-beta
+    title "P99 retard à l'arrivée (min)"
+    x-axis ["06-24", "06-25"]
+    y-axis "Retard (min)" 0 --> 72
+    line [60.0, 54.6]
+```
+
+### Percentiles par jour
+
+| Jour | Trains | Annulés | % > 5 min | P50 | P80 | P90 | P95 | P99 |
+|---|---|---|---|---|---|---|---|---|
+| 2026-06-24 | 128 | 6 | 10.2 % | à l'heure | à l'heure | 6 min | 33 min | 60 min |
+| 2026-06-25 | 128 | 4 | 10.2 % | à l'heure | 5 min | 6 min | 15 min | 55 min |
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 

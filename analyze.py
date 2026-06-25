@@ -516,6 +516,71 @@ def lyon_lepuy_journeys(
     return out
 
 
+def mermaid_line_chart(title: str, x_labels: list[str], values: list[float]) -> list[str]:
+    """Render a Mermaid xychart-beta line chart. GitHub renders this natively."""
+    y_max = max(10, max(values) * 1.2) if values else 10
+    x_axis = "[" + ", ".join(f'"{d}"' for d in x_labels) + "]"
+    return [
+        "```mermaid",
+        "xychart-beta",
+        f'    title "{title}"',
+        f"    x-axis {x_axis}",
+        f'    y-axis "Retard (min)" 0 --> {y_max:.0f}',
+        "    line [" + ", ".join(f"{v:.1f}" for v in values) + "]",
+        "```",
+    ]
+
+
+def daily_general_summary() -> list[dict]:
+    """One row per data day. All REGIONAURA TER axis trains' arrival delay
+    distribution (includes substitute delay for cancellations)."""
+    summaries: list[dict] = []
+    for f in sorted(DATA_DIR.glob("*.jsonl.gz")):
+        date_str = f.stem.replace(".jsonl", "")
+        rows: list[dict] = []
+        with gzip.open(f, "rt", encoding="utf-8") as fh:
+            for line in fh:
+                row = json.loads(line)
+                if row.get("line_name") not in RELEVANT_LINES:
+                    continue
+                row["vj_id"] = normalize_vj_id(row["vj_id"])
+                rows.append(row)
+        if not rows:
+            continue
+        journeys = build_journeys(rows)
+        journeys = {v: s for v, s in journeys.items() if is_on_axis(s)}
+        cancelled_local: dict[str, int | None] = {}
+        for vj, stops in journeys.items():
+            if is_origin_cancelled(stops):
+                cancelled_local[vj] = substitute_delay_sec(stops, journeys)
+        delays: list[int] = []
+        for vj, stops in journeys.items():
+            if vj in cancelled_local:
+                continue
+            d = max_arrival_delay(stops)
+            if d is not None:
+                delays.append(d)
+        for d in cancelled_local.values():
+            if d is not None:
+                delays.append(d)
+        if not delays:
+            continue
+        delays_sec = sorted(delays)
+        n_over_5 = sum(1 for d in delays_sec if d > 300)
+        summaries.append({
+            "date": date_str,
+            "n": len(delays_sec),
+            "cancelled": len(cancelled_local),
+            "pct_over_5": n_over_5 / len(delays_sec) * 100,
+            "p50_min": percentile(delays_sec, 50) / 60,
+            "p80_min": percentile(delays_sec, 80) / 60,
+            "p90_min": percentile(delays_sec, 90) / 60,
+            "p95_min": percentile(delays_sec, 95) / 60,
+            "p99_min": percentile(delays_sec, 99) / 60,
+        })
+    return summaries
+
+
 def percentile(values: list[float], p: float) -> float:
     """Linear-interpolation percentile (matches numpy default)."""
     if not values:
@@ -628,14 +693,22 @@ def main() -> None:
         lines.append("## Distribution des retards à l'arrivée")
         lines.append("")
         lines.append(
-            "_Hors correspondance. Les annulations sont comptées au retard du "
-            "prochain train de même direction._"
+            "**Périmètre :** TER REGIONAURA (Auvergne-Rhône-Alpes) sur l'axe "
+            "Lyon ↔ Saint-Étienne ↔ Le Puy-en-Velay — trains qui passent par "
+            "au moins 2 des 3 hubs (Lyon Part-Dieu/Perrache, Saint-Étienne "
+            "Châteaucreux, Le Puy-en-Velay). Lignes C18 et P28 essentiellement. "
+            "TGV, Intercités et trains hors-axe exclus. Annulations comptées "
+            "au retard du prochain train de même direction. Hors correspondance "
+            "(voir la section dédiée plus bas)."
         )
         lines.append("")
         n = len(all_delay_values)
         n_over_5 = sum(1 for d in all_delay_values if d > 300)
         pct_5 = n_over_5 / n * 100
-        lines.append(f"**{pct_5:.1f} % des trains arrivent avec un retard supérieur à 5 min.**")
+        lines.append(
+            f"**{pct_5:.1f} % des trains arrivent avec un retard supérieur à 5 min** "
+            f"(fenêtre {WINDOW_HOURS} h glissante)."
+        )
         lines.append("")
         pct_rows = []
         for p in (50, 80, 90, 95, 99):
@@ -644,6 +717,50 @@ def main() -> None:
             pct_rows.append([f"{p} %", label])
         lines.append(fmt_table(["Percentile", "Retard"], pct_rows))
         lines.append("")
+
+        daily_gen = daily_general_summary()
+        if daily_gen:
+            dates_short = [d["date"][-5:] for d in daily_gen]
+            lines.append("### P90 par jour _(le 10 % le plus en retard reste sous cette barre)_")
+            lines.append("")
+            lines.extend(mermaid_line_chart(
+                "P90 retard à l'arrivée (min)",
+                dates_short,
+                [d["p90_min"] for d in daily_gen],
+            ))
+            lines.append("")
+            lines.append("### P99 par jour _(le pire 1 %, dominé par les retards lourds et annulations)_")
+            lines.append("")
+            lines.extend(mermaid_line_chart(
+                "P99 retard à l'arrivée (min)",
+                dates_short,
+                [d["p99_min"] for d in daily_gen],
+            ))
+            lines.append("")
+            lines.append("### Percentiles par jour")
+            lines.append("")
+
+            def fmt_gen(v: float) -> str:
+                return "à l'heure" if v < 0.5 else f"{v:.0f} min"
+
+            gen_rows = []
+            for d in daily_gen:
+                gen_rows.append([
+                    d["date"],
+                    str(d["n"]),
+                    str(d["cancelled"]),
+                    f"{d['pct_over_5']:.1f} %",
+                    fmt_gen(d["p50_min"]),
+                    fmt_gen(d["p80_min"]),
+                    fmt_gen(d["p90_min"]),
+                    fmt_gen(d["p95_min"]),
+                    fmt_gen(d["p99_min"]),
+                ])
+            lines.append(fmt_table(
+                ["Jour", "Trains", "Annulés", "% > 5 min", "P50", "P80", "P90", "P95", "P99"],
+                gen_rows,
+            ))
+            lines.append("")
 
     # Focus Lyon ↔ Le Puy: experienced delay at the FINAL destination,
     # including the effect of missed correspondences. Both directions merged.
@@ -687,31 +804,17 @@ def main() -> None:
         )
         lines.append("")
         dates = [d["date"][-5:] for d in daily]
-        x_axis = "[" + ", ".join(f'"{d}"' for d in dates) + "]"
-
-        def mermaid_line(title: str, values: list[float], y_min: int = 0) -> list[str]:
-            y_max = max(10, max(values) * 1.2) if values else 10
-            return [
-                "```mermaid",
-                "xychart-beta",
-                f'    title "{title}"',
-                f"    x-axis {x_axis}",
-                f'    y-axis "Retard (min)" {y_min} --> {y_max:.0f}',
-                "    line [" + ", ".join(f"{v:.1f}" for v in values) + "]",
-                "```",
-            ]
-
-        p90s = [d["p90_min"] for d in daily]
-        p95s = [d["p95_min"] for d in daily]
-        p99s = [d["p99_min"] for d in daily]
-
         lines.append("### P90 par jour _(le 10 % le plus en retard reste sous cette barre)_")
         lines.append("")
-        lines.extend(mermaid_line("P90 retard Lyon ↔ Le Puy (min)", p90s))
+        lines.extend(mermaid_line_chart(
+            "P90 retard Lyon ↔ Le Puy (min)", dates, [d["p90_min"] for d in daily]
+        ))
         lines.append("")
         lines.append("### P99 par jour _(le pire 1 %, dominé par les correspondances loupées)_")
         lines.append("")
-        lines.extend(mermaid_line("P99 retard Lyon ↔ Le Puy (min)", p99s))
+        lines.extend(mermaid_line_chart(
+            "P99 retard Lyon ↔ Le Puy (min)", dates, [d["p99_min"] for d in daily]
+        ))
         lines.append("")
 
         # Daily percentile table — full breakdown 50/80/90/95/99 per day.
