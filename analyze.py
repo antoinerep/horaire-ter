@@ -38,8 +38,11 @@ AXIS_HUBS = (
 
 WINDOW_HOURS = 24
 DELAY_THRESHOLD_SEC = 300  # 5 min = SNCF "en retard" threshold
-MIN_CONNECTION_GAP_MIN = 3  # User's rule: less than 3 min = missed
-CONNECTION_WINDOW_MIN = 30  # Realistic marketed-correspondence window
+MIN_CONNECTION_GAP_MIN = 5  # Less than 5 min real gap = missed
+# Sampling /journeys for Lyon ↔ Le Puy ↔ Ambérieu pairs showed SNCF markets
+# transfers at Saint-Étienne up to ~80 minutes on low-frequency evening links;
+# 75 min covers the long tail without dragging in the next-day "next train".
+CONNECTION_WINDOW_MIN = 75
 
 RELEVANT_LINES = {"REGIONAURA"}
 

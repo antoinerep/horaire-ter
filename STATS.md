@@ -1,6 +1,6 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-06-25 13:33 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-06-25 13:41 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
@@ -18,7 +18,7 @@ _Mis à jour le 2026-06-25 13:33 UTC — fenêtre des dernières 24 heures. Trai
 | 95 % | retard ≤ 15.0 min |
 | 99 % | retard ≤ 45.7 min |
 
-**Correspondances à St-Étienne Châteaucreux** : 160 analysées, **7 loupées** (4.4 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+**Correspondances à St-Étienne Châteaucreux** : 257 analysées, **8 loupées** (3.1 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
 ## Trains en retard ou annulés
 
@@ -57,12 +57,13 @@ _Mis à jour le 2026-06-25 13:33 UTC — fenêtre des dernières 24 heures. Trai
 
 ## Correspondances à St-Étienne Châteaucreux
 
-160 correspondances analysées (toute destination), dont **7 loupées** (gap réel < 3 min). Fenêtre de candidat : 30 min après l'arrivée prévue.
+257 correspondances analysées (toute destination), dont **8 loupées** (gap réel < 5 min). Fenêtre de candidat : 75 min après l'arrivée prévue.
 
 | Jour | Train arr. | Origine | Arr. St-Étienne | Train pris | Destination | Écart prévu | Statut | Retard ressenti |
 |---|---|---|---|---|---|---|---|---|
 | 25/06 | 886269 | Firminy | 11:00 | 889980 12:58 | Le Puy-en-Velay (Le Puy-en-Velay) | 1 min | LOUPÉE | +117 min |
 | 24/06 | 886744 | Lyon Part Dieu | 20:30 (+20m) | 889968 22:00 | Le Puy-en-Velay (Le Puy-en-Velay) | 10 min | LOUPÉE | +100 min |
+| 24/06 | 886738 | Ambérieu-en-Bugey | 18:50 (+10m) | 889966 20:20 | Le Puy-en-Velay (Le Puy-en-Velay) | 14 min | LOUPÉE | +86 min |
 | 25/06 | 886251 | Firminy | 05:30 | 889952 06:48 | Le Puy-en-Velay (Le Puy-en-Velay) | 1 min | LOUPÉE | +77 min |
 | 24/06 | 889965 | Le Puy-en-Velay | 21:18 (+5m) | 886861 22:20 | Lyon Part Dieu (Lyon) | 7 min | LOUPÉE | +60 min |
 | 25/06 | 886718 | Lyon Part Dieu | 12:40 (+30m) | 886827 13:20 | Ambérieu-en-Bugey (Ambérieu-en-Bugey) | 10 min | LOUPÉE | +60 min |
