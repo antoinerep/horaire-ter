@@ -39,9 +39,10 @@ AXIS_HUBS = (
 WINDOW_HOURS = 24
 DELAY_THRESHOLD_SEC = 300  # 5 min = SNCF "en retard" threshold
 MIN_CONNECTION_GAP_MIN = 5  # Less than 5 min real gap = missed
-# Sampling /journeys for Lyon ↔ Le Puy ↔ Ambérieu pairs showed SNCF markets
-# transfers at Saint-Étienne up to ~80 minutes on low-frequency evening links;
-# 75 min covers the long tail without dragging in the next-day "next train".
+# Sampling /journeys (transfer + waiting summed) on Saint-Étienne axis pairs:
+# Lyon ↔ Le Puy 7-50 min, Lyon ↔ Firminy 10-50 min, Ambérieu ↔ Le Puy via
+# Saint-Étienne up to ~80 min on low-frequency evening links. 75 min covers
+# the long tail without dragging in the next-day "next train".
 CONNECTION_WINDOW_MIN = 75
 
 RELEVANT_LINES = {"REGIONAURA"}
