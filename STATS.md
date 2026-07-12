@@ -1,28 +1,28 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-07-12 02:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-07-12 10:19 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
-- **Trains observés** : 137
-- **Trains annulés** : 2
-- **Trains en retard ≥ 5 min ou annulés** : 7 (5.1 %)
+- **Trains observés** : 109
+- **Trains annulés** : 1
+- **Trains en retard ≥ 5 min ou annulés** : 3 (2.8 %)
 
-- **Correspondances à St-Étienne Châteaucreux** : 171 analysées, **1 loupées** (0.6 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+- **Correspondances à St-Étienne Châteaucreux** : 127 analysées, **0 loupées** (0.0 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
 ## Distribution des retards à l'arrivée
 
 **Périmètre :** TER REGIONAURA (Auvergne-Rhône-Alpes) sur l'axe Lyon ↔ Saint-Étienne ↔ Le Puy-en-Velay — trains qui passent par au moins 2 des 3 hubs (Lyon Part-Dieu/Perrache, Saint-Étienne Châteaucreux, Le Puy-en-Velay). Lignes C18 et P28 essentiellement. TGV, Intercités et trains hors-axe exclus. Annulations comptées au retard du prochain train de même direction. Hors correspondance (voir la section dédiée plus bas).
 
-**3.6 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
+**2.8 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
 
 | Percentile | Retard |
 |---|---|
 | 50 % | à l'heure |
 | 80 % | à l'heure |
 | 90 % | à l'heure |
-| 95 % | ≤ 1 min |
-| 99 % | ≤ 44 min |
+| 95 % | à l'heure |
+| 99 % | ≤ 15 min |
 
 ### P90 par jour _(le 10 % le plus en retard reste sous cette barre)_
 
@@ -66,11 +66,11 @@ xychart-beta
 | 2026-07-09 | 128 | 0 | 2.3 % | à l'heure | à l'heure | 5 min | 5 min | 10 min |
 | 2026-07-10 | 125 | 3 | 5.6 % | à l'heure | à l'heure | 5 min | 9 min | 45 min |
 | 2026-07-11 | 78 | 2 | 6.4 % | à l'heure | à l'heure | à l'heure | 11 min | 60 min |
-| 2026-07-12 | 58 | 0 | 0.0 % | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
+| 2026-07-12 | 61 | 0 | 0.0 % | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 
-36 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
+27 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
 
 **0.0 %** des trajets avec un retard d'arrivée > 5 min.
 
@@ -128,6 +128,6 @@ xychart-beta
 | 2026-07-09 | 41 | 0 | à l'heure | 5 min | 5 min | 5 min | 5 min |
 | 2026-07-10 | 39 | 0 | à l'heure | à l'heure | à l'heure | 6 min | 32 min |
 | 2026-07-11 | 21 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
-| 2026-07-12 | 15 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
+| 2026-07-12 | 16 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
 
 📄 **Listes détaillées** (trains en retard + correspondances) : voir [DETAIL.md](DETAIL.md).
