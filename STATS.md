@@ -1,20 +1,20 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-07-14 02:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-07-14 10:26 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
-- **Trains observés** : 187
+- **Trains observés** : 131
 - **Trains annulés** : 3
-- **Trains en retard ≥ 5 min ou annulés** : 15 (8.0 %)
+- **Trains en retard ≥ 5 min ou annulés** : 11 (8.4 %)
 
-- **Correspondances à St-Étienne Châteaucreux** : 264 analysées, **2 loupées** (0.8 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+- **Correspondances à St-Étienne Châteaucreux** : 161 analysées, **0 loupées** (0.0 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
 ## Distribution des retards à l'arrivée
 
 **Périmètre :** TER REGIONAURA (Auvergne-Rhône-Alpes) sur l'axe Lyon ↔ Saint-Étienne ↔ Le Puy-en-Velay — trains qui passent par au moins 2 des 3 hubs (Lyon Part-Dieu/Perrache, Saint-Étienne Châteaucreux, Le Puy-en-Velay). Lignes C18 et P28 essentiellement. TGV, Intercités et trains hors-axe exclus. Annulations comptées au retard du prochain train de même direction. Hors correspondance (voir la section dédiée plus bas).
 
-**3.7 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
+**4.6 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
 
 | Percentile | Retard |
 |---|---|
@@ -22,7 +22,7 @@ _Mis à jour le 2026-07-14 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 80 % | à l'heure |
 | 90 % | à l'heure |
 | 95 % | ≤ 5 min |
-| 99 % | ≤ 43 min |
+| 99 % | ≤ 54 min |
 
 ### P90 par jour _(le 10 % le plus en retard reste sous cette barre)_
 
@@ -41,7 +41,7 @@ xychart-beta
     title "P99 retard à l'arrivée (min)"
     x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14"]
     y-axis "Retard (min)" 0 --> 157
-    line [60.0, 54.6, 15.0, 20.8, 36.4, 13.7, 10.0, 10.0, 18.7, 15.0, 10.0, 10.0, 10.0, 19.6, 131.1, 10.0, 45.0, 60.0, 23.0, 54.4, 0.0]
+    line [60.0, 54.6, 15.0, 20.8, 36.4, 13.7, 10.0, 10.0, 18.7, 15.0, 10.0, 10.0, 10.0, 19.6, 131.1, 10.0, 45.0, 60.0, 23.0, 54.4, 4.0]
 ```
 
 ### Percentiles par jour
@@ -68,20 +68,20 @@ xychart-beta
 | 2026-07-11 | 78 | 2 | 6.4 % | à l'heure | à l'heure | à l'heure | 11 min | 60 min |
 | 2026-07-12 | 61 | 0 | 1.6 % | à l'heure | à l'heure | à l'heure | à l'heure | 23 min |
 | 2026-07-13 | 129 | 3 | 5.4 % | à l'heure | à l'heure | 5 min | 8 min | 54 min |
-| 2026-07-14 | 58 | 0 | 0.0 % | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
+| 2026-07-14 | 61 | 0 | 1.6 % | à l'heure | à l'heure | à l'heure | à l'heure | 4 min |
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 
-58 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
+38 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
 
-**3.4 %** des trajets avec un retard d'arrivée > 5 min.
+**5.3 %** des trajets avec un retard d'arrivée > 5 min.
 
 | Percentile | Retard arrivée |
 |---|---|
 | 50 % | à l'heure |
-| 80 % | à l'heure |
+| 80 % | ≤ 5 min |
 | 90 % | ≤ 5 min |
-| 95 % | ≤ 5 min |
+| 95 % | ≤ 6 min |
 | 99 % | ≤ 15 min |
 
 ## Évolution quotidienne Lyon ↔ Le Puy
@@ -132,6 +132,6 @@ xychart-beta
 | 2026-07-11 | 21 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
 | 2026-07-12 | 16 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
 | 2026-07-13 | 43 | 0 | à l'heure | 3 min | 5 min | 5 min | 15 min |
-| 2026-07-14 | 15 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
+| 2026-07-14 | 16 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
 
 📄 **Listes détaillées** (trains en retard + correspondances) : voir [DETAIL.md](DETAIL.md).
