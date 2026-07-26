@@ -1,37 +1,37 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-07-25 06:33 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-07-26 02:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
-- **Trains observés** : 176
+- **Trains observés** : 138
 - **Trains annulés** : 0
-- **Trains en retard ≥ 5 min ou annulés** : 10 (5.7 %)
+- **Trains en retard ≥ 5 min ou annulés** : 3 (2.2 %)
 
-- **Correspondances à St-Étienne Châteaucreux** : 261 analysées, **3 loupées** (1.1 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+- **Correspondances à St-Étienne Châteaucreux** : 179 analysées, **1 loupées** (0.6 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
 ## Distribution des retards à l'arrivée
 
 **Périmètre :** TER REGIONAURA (Auvergne-Rhône-Alpes) sur l'axe Lyon ↔ Saint-Étienne ↔ Le Puy-en-Velay — trains qui passent par au moins 2 des 3 hubs (Lyon Part-Dieu/Perrache, Saint-Étienne Châteaucreux, Le Puy-en-Velay). Lignes C18 et P28 essentiellement. TGV, Intercités et trains hors-axe exclus. Annulations comptées au retard du prochain train de même direction. Hors correspondance (voir la section dédiée plus bas).
 
-**1.7 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
+**0.7 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
 
 | Percentile | Retard |
 |---|---|
 | 50 % | à l'heure |
 | 80 % | à l'heure |
 | 90 % | à l'heure |
-| 95 % | ≤ 5 min |
-| 99 % | ≤ 11 min |
+| 95 % | à l'heure |
+| 99 % | ≤ 5 min |
 
 ### P90 par jour _(le 10 % le plus en retard reste sous cette barre)_
 
 ```mermaid
 xychart-beta
     title "P90 retard à l'arrivée (min)"
-    x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25"]
+    x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25", "07-26"]
     y-axis "Retard (min)" 0 --> 72
-    line [6.5, 10.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 60.0, 5.0, 5.0, 0.0, 0.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0]
+    line [6.5, 10.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 60.0, 5.0, 5.0, 0.0, 0.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0]
 ```
 
 ### P99 par jour _(le pire 1 %, dominé par les retards lourds et annulations)_
@@ -39,9 +39,9 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "P99 retard à l'arrivée (min)"
-    x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25"]
+    x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25", "07-26"]
     y-axis "Retard (min)" 0 --> 157
-    line [60.0, 54.6, 15.0, 20.8, 36.4, 13.7, 10.0, 10.0, 18.7, 15.0, 10.0, 10.0, 10.0, 19.6, 131.1, 10.0, 45.0, 60.0, 23.0, 54.4, 18.0, 23.6, 103.2, 98.1, 26.1, 5.0, 24.8, 26.1, 56.1, 30.0, 15.0, 1.1]
+    line [60.0, 54.6, 15.0, 20.8, 36.4, 13.7, 10.0, 10.0, 18.7, 15.0, 10.0, 10.0, 10.0, 19.6, 131.1, 10.0, 45.0, 60.0, 23.0, 54.4, 18.0, 23.6, 103.2, 98.1, 26.1, 5.0, 24.8, 26.1, 56.1, 30.0, 15.0, 6.1, 0.0]
 ```
 
 ### Percentiles par jour
@@ -79,21 +79,22 @@ xychart-beta
 | 2026-07-22 | 127 | 3 | 5.5 % | à l'heure | à l'heure | 5 min | 8 min | 56 min |
 | 2026-07-23 | 127 | 3 | 6.3 % | à l'heure | à l'heure | 5 min | 10 min | 30 min |
 | 2026-07-24 | 127 | 0 | 3.1 % | à l'heure | à l'heure | à l'heure | 5 min | 15 min |
-| 2026-07-25 | 79 | 0 | 0.0 % | à l'heure | à l'heure | à l'heure | à l'heure | 1 min |
+| 2026-07-25 | 79 | 0 | 1.3 % | à l'heure | à l'heure | à l'heure | à l'heure | 6 min |
+| 2026-07-26 | 58 | 0 | 0.0 % | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 
-56 trajets analysés (les deux sens fusionnés), dont 1 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
+39 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
 
-**5.4 %** des trajets avec un retard d'arrivée > 5 min.
+**0.0 %** des trajets avec un retard d'arrivée > 5 min.
 
 | Percentile | Retard arrivée |
 |---|---|
 | 50 % | à l'heure |
 | 80 % | à l'heure |
 | 90 % | à l'heure |
-| 95 % | ≤ 6 min |
-| 99 % | ≤ 26 min |
+| 95 % | à l'heure |
+| 99 % | à l'heure |
 
 ## Évolution quotidienne Lyon ↔ Le Puy
 
@@ -104,9 +105,9 @@ Retard à l'arrivée par jour, les deux sens fusionnés. Le retard intègre l'ef
 ```mermaid
 xychart-beta
     title "P90 retard Lyon ↔ Le Puy (min)"
-    x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25"]
+    x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25", "07-26"]
     y-axis "Retard (min)" 0 --> 61
-    line [0.0, 0.0, 9.0, 5.0, 20.0, 5.0, 5.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 51.0, 5.0, 0.0, 0.0, 0.0, 5.0, 0.0, 19.0, 17.0, 5.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 4.0, 0.0]
+    line [0.0, 0.0, 9.0, 5.0, 20.0, 5.0, 5.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0, 0.0, 51.0, 5.0, 0.0, 0.0, 0.0, 5.0, 0.0, 19.0, 17.0, 5.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 4.0, 0.0, 0.0]
 ```
 
 ### P99 par jour _(le pire 1 %, dominé par les correspondances loupées)_
@@ -114,9 +115,9 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "P99 retard Lyon ↔ Le Puy (min)"
-    x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25"]
+    x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25", "07-26"]
     y-axis "Retard (min)" 0 --> 107
-    line [89.4, 11.2, 45.6, 47.9, 20.0, 30.0, 41.5, 30.0, 5.0, 17.2, 0.0, 8.5, 10.0, 3.0, 85.4, 5.0, 31.7, 0.0, 0.0, 15.0, 25.5, 20.0, 40.0, 48.3, 46.2, 0.0, 31.2, 21.8, 26.0, 29.2, 48.3, 0.0]
+    line [89.4, 11.2, 45.6, 47.9, 20.0, 30.0, 41.5, 30.0, 5.0, 17.2, 0.0, 8.5, 10.0, 3.0, 85.4, 5.0, 31.7, 0.0, 0.0, 15.0, 25.5, 20.0, 40.0, 48.3, 46.2, 0.0, 31.2, 21.8, 26.0, 29.2, 48.3, 0.0, 0.0]
 ```
 
 ### Percentiles par jour
@@ -155,5 +156,6 @@ xychart-beta
 | 2026-07-23 | 42 | 1 | à l'heure | à l'heure | à l'heure | à l'heure | 29 min |
 | 2026-07-24 | 43 | 1 | à l'heure | à l'heure | 4 min | 10 min | 48 min |
 | 2026-07-25 | 24 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
+| 2026-07-26 | 15 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
 
 📄 **Listes détaillées** (trains en retard + correspondances) : voir [DETAIL.md](DETAIL.md).
