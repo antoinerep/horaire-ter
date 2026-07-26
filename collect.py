@@ -89,6 +89,12 @@ LOOKBACK_HOURS = 4
 # Page size for departures/arrivals (Navitia caps around 1000).
 PAGE_COUNT = 500
 
+# When fetching disruption reasons, look back a bit further than the collection
+# window so late-arriving trains that were disrupted earlier still get tagged.
+DISRUPTION_LOOKBACK_HOURS = 12
+DISRUPTION_PAGE_COUNT = 200
+DISRUPTION_MAX_PAGES = 15  # safety cap: ~3000 disruptions
+
 SLEEP_BETWEEN_CALLS_S = 0.25
 MAX_RETRIES = 5
 RETRY_BASE_DELAY_S = 2.0
@@ -134,6 +140,59 @@ def normalize_vj_id(vj_id: str) -> str:
     longer suffix represents a modification annotation, not a different train."""
     parts = vj_id.split(":")
     return ":".join(parts[:6]) if len(parts) > 6 else vj_id
+
+
+def trip_key(vj_id: str) -> str:
+    """Extract the SNCF:DATE:NUMBER:OP:MODE portion, dropping the leading
+    ``vehicle_journey:`` prefix so it matches the trip ids used in the
+    /disruptions endpoint (which omits that prefix)."""
+    if vj_id.startswith("vehicle_journey:"):
+        return vj_id[len("vehicle_journey:") :]
+    return vj_id
+
+
+def fetch_disruption_reasons(from_dt: datetime) -> dict[str, dict[str, str]]:
+    """Query /disruptions over the window covering our collection period and
+    return ``{trip_id → {'effect': str, 'reason': str}}`` for every disrupted
+    trip. Uses the first non-empty message text as the human-readable reason
+    (e.g. "Incident lors de la préparation du train")."""
+    since_dt = from_dt - timedelta(hours=DISRUPTION_LOOKBACK_HOURS)
+    since = since_dt.strftime("%Y%m%dT%H%M%S")
+    until = (datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=1)).strftime("%Y%m%dT%H%M%S")
+    reasons: dict[str, dict[str, str]] = {}
+    url: str | None = f"{API_BASE}/disruptions"
+    params: dict[str, Any] | None = {
+        "since": since,
+        "until": until,
+        "count": DISRUPTION_PAGE_COUNT,
+    }
+    pages = 0
+    while url and pages < DISRUPTION_MAX_PAGES:
+        data = get_json(url, params=params)
+        for d in data.get("disruptions", []):
+            effect = (d.get("severity") or {}).get("effect", "")
+            msg = next(
+                (m.get("text", "") for m in d.get("messages", []) if m.get("text")),
+                "",
+            )
+            if not msg:
+                continue
+            reason = msg[:250]
+            for io in d.get("impacted_objects", []):
+                pt = io.get("pt_object") or {}
+                if pt.get("embedded_type") != "trip":
+                    continue
+                tid = pt.get("id", "")
+                # Keep the first (most detailed) reason seen per trip.
+                reasons.setdefault(tid, {"effect": effect, "reason": reason})
+        next_link = next(
+            (l["href"] for l in data.get("links", []) if l.get("type") == "next"),
+            None,
+        )
+        url = next_link
+        params = None
+        pages += 1
+    return reasons
 
 
 def delay_seconds(scheduled: datetime | None, realtime: datetime | None) -> int | None:
@@ -278,6 +337,13 @@ def collect_window(from_dt: datetime, target_date: date) -> pathlib.Path:
                     row["delay_sec"] = None
                 k = (row["vj_id"], row["stop_id"], row["kind"], row["base_dt"])
                 prev = existing.get(k)
+                # Preserve the disruption reason from a previous run: the
+                # /disruptions endpoint has a shorter lookback than the
+                # collection window, so an old row's reason should not be
+                # dropped by a fresh row that hasn't been re-enriched yet.
+                if prev and prev.get("disruption_reason") and not row.get("disruption_reason"):
+                    row["disruption_reason"] = prev["disruption_reason"]
+                    row["disruption_effect"] = prev.get("disruption_effect", "")
                 if prev is None:
                     existing[k] = row
                     new_rows += 1
@@ -309,6 +375,24 @@ def collect_window(from_dt: datetime, target_date: date) -> pathlib.Path:
                 k = (row["vj_id"], row["stop_id"], row["kind"], row["base_dt"])
                 merge(row, cancelled=(k not in rt_keys))
 
+    # Enrich rows with delay reasons from /disruptions.
+    try:
+        disruption_reasons = fetch_disruption_reasons(from_dt)
+        api_calls += 1  # rough count; internally paginates
+    except Exception as e:
+        print(f"  Warn: disruption fetch failed ({e}); skipping reason enrichment", file=sys.stderr)
+        disruption_reasons = {}
+    enriched = 0
+    for row in existing.values():
+        tk = trip_key(row["vj_id"])
+        info = disruption_reasons.get(tk)
+        if not info:
+            continue
+        if row.get("disruption_reason") != info["reason"] or row.get("disruption_effect") != info["effect"]:
+            row["disruption_effect"] = info["effect"]
+            row["disruption_reason"] = info["reason"]
+            enriched += 1
+
     with gzip.open(out_file, "wt", encoding="utf-8") as f:
         for row in existing.values():
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
@@ -316,7 +400,7 @@ def collect_window(from_dt: datetime, target_date: date) -> pathlib.Path:
     print(
         f"{run_ts}: {api_calls} API calls, {events_seen} events seen, "
         f"{len(existing)} rows total ({new_rows} new, {updated_rows} updated, "
-        f"{cancelled_rows} cancelled) → {out_file}"
+        f"{cancelled_rows} cancelled, {enriched} reasons added) → {out_file}"
     )
 
     # Silent-failure detection: during operational hours we should always see

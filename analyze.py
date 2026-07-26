@@ -11,16 +11,18 @@ from __future__ import annotations
 import gzip
 import json
 import pathlib
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from statistics import median
 from typing import Callable
+from zoneinfo import ZoneInfo
 
 DATA_DIR = pathlib.Path("data")
 OUT_FILE = pathlib.Path("STATS.md")
 DETAIL_FILE = pathlib.Path("DETAIL.md")
 
-PARIS_TZ = timezone(timedelta(hours=2))  # CEST; OK for summer, off by 1h in winter
+# Europe/Paris handles CEST/CET DST automatically (stdlib zoneinfo, Python 3.9+).
+PARIS_TZ = ZoneInfo("Europe/Paris")
 
 STE_HUB = "stop_area:SNCF:87726000"  # Saint-Étienne Châteaucreux (trains)
 LE_PUY = "stop_area:SNCF:87734699"
@@ -597,6 +599,17 @@ def train_label(stops: list[dict]) -> str:
     return stops[-1].get("train_name") or stops[-1].get("vj_id", "?")
 
 
+def train_reason(stops: list[dict]) -> tuple[str, str]:
+    """Return (effect, reason) attached to the train's disruption, if any.
+    All rows for the same vj_id share the same reason once collect.py has
+    enriched them, so we just grab the first non-empty pair."""
+    for s in stops:
+        r = s.get("disruption_reason")
+        if r:
+            return (s.get("disruption_effect") or "", r)
+    return ("", "")
+
+
 def format_dest(s: str) -> str:
     """Annotate Ambérieu destinations with the via-Lyon Part-Dieu routing so
     readers know the train doesn't go there directly from Saint-Étienne."""
@@ -762,6 +775,33 @@ def main() -> None:
             ))
             lines.append("")
 
+    # Motifs de retard: aggregate reasons across disrupted trains
+    # (delayed ≥ 5 min or cancelled). One reason per train.
+    reason_counter: Counter[tuple[str, str]] = Counter()
+    for vj in list(delayed) + list(cancelled):
+        effect, reason = train_reason(journeys[vj])
+        if reason:
+            reason_counter[(effect, reason)] += 1
+    if reason_counter:
+        lines.append("## Motifs de retard (fenêtre 24 h)")
+        lines.append("")
+        lines.append(
+            "_Motifs remontés par l'API SNCF `/disruptions` pour les trains en retard "
+            "≥ 5 min ou annulés sur la fenêtre. Un motif = un train._"
+        )
+        lines.append("")
+        n_reasoned = sum(reason_counter.values())
+        n_disrupted_total = len(delayed) + len(cancelled)
+        lines.append(
+            f"**{n_reasoned}/{n_disrupted_total}** trains perturbés associés à un motif."
+        )
+        lines.append("")
+        motif_rows = []
+        for (effect, reason), count in reason_counter.most_common(10):
+            motif_rows.append([str(count), effect or "—", reason])
+        lines.append(fmt_table(["Trains", "Effet", "Motif"], motif_rows))
+        lines.append("")
+
     # Focus Lyon ↔ Le Puy: experienced delay at the FINAL destination,
     # including the effect of missed correspondences. Both directions merged.
     ll_journeys = lyon_lepuy_journeys(all_conn)
@@ -873,6 +913,7 @@ def main() -> None:
             stops = journeys[vj]
             sched = origin_scheduled_dt(stops)
             hub = hub_delay_sec(stops)
+            _, reason = train_reason(stops)
             if status == "ANNULÉ":
                 delay_str = (
                     f"+{eff_delay // 60} min (train suivant)" if eff_delay >= 0 else "—"
@@ -890,9 +931,10 @@ def main() -> None:
                 status,
                 delay_str,
                 hub_str,
+                (reason or "—")[:80],
             ])
         detail.append(fmt_table(
-            ["Train", "Jour", "Heure prévue", "Origine", "Destination", "Statut", "Retard ressenti", "Retard à St-Étienne"],
+            ["Train", "Jour", "Heure prévue", "Origine", "Destination", "Statut", "Retard ressenti", "Retard à St-Étienne", "Motif"],
             train_rows,
         ))
         detail.append("")
