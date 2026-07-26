@@ -24,6 +24,28 @@ DETAIL_FILE = pathlib.Path("DETAIL.md")
 # Europe/Paris handles CEST/CET DST automatically (stdlib zoneinfo, Python 3.9+).
 PARIS_TZ = ZoneInfo("Europe/Paris")
 
+# French national holidays 2025-2027. Add new years as needed. Regional Alsace-
+# Moselle holidays (26 Dec, Vendredi saint) are excluded — the axis is outside.
+FR_HOLIDAYS: frozenset[str] = frozenset({
+    "2025-01-01", "2025-04-21", "2025-05-01", "2025-05-08",
+    "2025-05-29", "2025-06-09", "2025-07-14", "2025-08-15",
+    "2025-11-01", "2025-11-11", "2025-12-25",
+    "2026-01-01", "2026-04-06", "2026-05-01", "2026-05-08",
+    "2026-05-14", "2026-05-25", "2026-07-14", "2026-08-15",
+    "2026-11-01", "2026-11-11", "2026-12-25",
+    "2027-01-01", "2027-03-29", "2027-05-01", "2027-05-08",
+    "2027-05-06", "2027-05-17", "2027-07-14", "2027-08-15",
+    "2027-11-01", "2027-11-11", "2027-12-25",
+})
+
+
+def day_type(date_iso: str) -> str:
+    """'férié' | 'weekend' | 'semaine'. date_iso is YYYY-MM-DD."""
+    if date_iso in FR_HOLIDAYS:
+        return "férié"
+    weekday = datetime.fromisoformat(date_iso).weekday()
+    return "weekend" if weekday >= 5 else "semaine"
+
 STE_HUB = "stop_area:SNCF:87726000"  # Saint-Étienne Châteaucreux (trains)
 LE_PUY = "stop_area:SNCF:87734699"
 LYON_STOPS = {
@@ -38,6 +60,60 @@ AXIS_HUBS = (
     {STE_HUB},              # Saint-Étienne Châteaucreux
     {LE_PUY},               # Le Puy-en-Velay terminus
 )
+
+# Stops exclusive to line C18 (Lyon ↔ Saint-Étienne). Trains touching any of
+# these are on the Lyon-side segment; some also run to/from Ambérieu via Lyon.
+C18_EXCLUSIVE_STOPS = frozenset({
+    "stop_area:SNCF:87743716",  # Ambérieu-en-Bugey
+    "stop_area:SNCF:87723544",  # Beynost
+    "stop_area:SNCF:87723502",  # Crépieux la Pape
+    "stop_area:SNCF:87723577",  # La Valbonne
+    "stop_area:SNCF:87723197",  # Lyon Part Dieu
+    "stop_area:SNCF:87722025",  # Lyon Perrache
+    "stop_area:SNCF:87723585",  # Meximieux - Pérouges
+    "stop_area:SNCF:87723528",  # Miribel
+    "stop_area:SNCF:87723569",  # Montluel
+    "stop_area:SNCF:87722207",  # Oullins
+    "stop_area:SNCF:87723536",  # Saint-Maurice-de-Beynost
+})
+
+# Stops exclusive to line P28 (Saint-Étienne ↔ Le Puy).
+P28_EXCLUSIVE_STOPS = frozenset({
+    "stop_area:SNCF:87726760",  # Aurec
+    "stop_area:SNCF:87726778",  # Bas - Monistrol
+    "stop_area:SNCF:87726794",  # Beauzac
+    "stop_area:SNCF:87734731",  # Chamalières-sur-Loire
+    "stop_area:SNCF:87726729",  # Firminy
+    "stop_area:SNCF:87726737",  # Fraisses - Unieux
+    "stop_area:SNCF:87726703",  # La Ricamarie
+    "stop_area:SNCF:87734707",  # Lavoûte-sur-Loire
+    "stop_area:SNCF:87726711",  # Le Chambon-Feugerolles
+    "stop_area:SNCF:87734699",  # Le Puy-en-Velay
+    "stop_area:SNCF:87024380",  # Le Puy-en-Velay Lafayette
+    "stop_area:SNCF:87589598",  # Le Puy - Hôpital E.Roux
+    "stop_area:SNCF:87726786",  # Pont de Lignon
+    "stop_area:SNCF:87734749",  # Retournac
+    "stop_area:SNCF:87734715",  # Saint-Vincent le Château
+    "stop_area:SNCF:87734723",  # Vorey
+    "stop_area:SNCF:87726190",  # Saint-Étienne Bellevue (P28-side urban)
+    "stop_area:SNCF:87726174",  # Saint-Étienne Le Clapier (P28-side urban)
+    "stop_area:SNCF:87726901",  # Saint-Étienne Carnot (P28-side urban)
+})
+
+
+def train_line(stops: list[dict]) -> str:
+    """C18 if the journey visits any C18-exclusive stop, P28 for P28-exclusive,
+    "C18+P28" for a through-service touching both sides, "?" if neither."""
+    stop_ids = {s["stop_id"] for s in stops}
+    on_c18 = bool(stop_ids & C18_EXCLUSIVE_STOPS)
+    on_p28 = bool(stop_ids & P28_EXCLUSIVE_STOPS)
+    if on_c18 and on_p28:
+        return "C18+P28"
+    if on_c18:
+        return "C18"
+    if on_p28:
+        return "P28"
+    return "?"
 
 WINDOW_HOURS = 24
 DELAY_THRESHOLD_SEC = 300  # 5 min = SNCF "en retard" threshold
@@ -206,7 +282,15 @@ def hub_delay_sec(stops: list[dict]) -> int | None:
 
 def is_origin_cancelled(stops: list[dict]) -> bool:
     o = origin_stop(stops)
-    return bool(o and o.get("cancelled"))
+    if not o or not o.get("cancelled"):
+        return False
+    # Ignore ADDITIONAL_SERVICE false positives: those are added trains that
+    # appear in base_schedule but were never actually meant to run under this
+    # vj_id — the /disruptions endpoint tags them explicitly.
+    for s in stops:
+        if s.get("disruption_effect") == "ADDITIONAL_SERVICE":
+            return False
+    return True
 
 
 def direction_label(stops: list[dict]) -> str:
@@ -571,6 +655,7 @@ def daily_general_summary() -> list[dict]:
         n_over_5 = sum(1 for d in delays_sec if d > 300)
         summaries.append({
             "date": date_str,
+            "type": day_type(date_str),
             "n": len(delays_sec),
             "cancelled": len(cancelled_local),
             "pct_over_5": n_over_5 / len(delays_sec) * 100,
@@ -579,6 +664,7 @@ def daily_general_summary() -> list[dict]:
             "p90_min": percentile(delays_sec, 90) / 60,
             "p95_min": percentile(delays_sec, 95) / 60,
             "p99_min": percentile(delays_sec, 99) / 60,
+            "delays_sec": delays_sec,  # kept for by-day-type aggregation
         })
     return summaries
 
@@ -731,8 +817,90 @@ def main() -> None:
         lines.append(fmt_table(["Percentile", "Retard"], pct_rows))
         lines.append("")
 
+        # Line split (C18 vs P28): show current-window trains per line.
+        by_line: dict[str, list[int]] = defaultdict(list)
+        by_line_cancelled: Counter[str] = Counter()
+        for vj, stops in journeys.items():
+            line = train_line(stops)
+            if vj in cancelled:
+                by_line_cancelled[line] += 1
+                sub = cancelled[vj]
+                if sub is not None:
+                    by_line[line].append(sub)
+            else:
+                d = delays.get(vj)
+                if d is not None:
+                    by_line[line].append(d)
+        if by_line:
+            lines.append("### Par ligne (fenêtre 24 h)")
+            lines.append("")
+            line_rows = []
+            for line_name in ("C18", "P28", "C18+P28", "?"):
+                ds = by_line.get(line_name, [])
+                if not ds:
+                    continue
+                n = len(ds)
+                n_over_5 = sum(1 for d in ds if d > 300)
+                p90 = percentile(ds, 90) / 60
+                p99 = percentile(ds, 99) / 60
+                label_line = {
+                    "C18": "C18 — Lyon ↔ St-Étienne",
+                    "P28": "P28 — St-Étienne ↔ Le Puy",
+                    "C18+P28": "C18+P28 (through-service)",
+                    "?": "Non classé",
+                }[line_name]
+                line_rows.append([
+                    label_line,
+                    str(n),
+                    str(by_line_cancelled[line_name]),
+                    f"{n_over_5 / n * 100:.1f} %",
+                    "à l'heure" if p90 < 0.5 else f"{p90:.0f} min",
+                    "à l'heure" if p99 < 0.5 else f"{p99:.0f} min",
+                ])
+            lines.append(fmt_table(
+                ["Ligne", "Trains", "Annulés", "% > 5 min", "P90", "P99"],
+                line_rows,
+            ))
+            lines.append("")
+
         daily_gen = daily_general_summary()
         if daily_gen:
+            # Aggregate by day type across the full history.
+            by_type: dict[str, list[int]] = defaultdict(list)
+            by_type_n_days: Counter[str] = Counter()
+            by_type_cancelled: Counter[str] = Counter()
+            for d in daily_gen:
+                t = d["type"]
+                by_type[t].extend(d["delays_sec"])
+                by_type_n_days[t] += 1
+                by_type_cancelled[t] += d["cancelled"]
+            if by_type:
+                lines.append("### Par type de jour (tout l'historique)")
+                lines.append("")
+                type_rows = []
+                for t in ("semaine", "weekend", "férié"):
+                    ds = by_type.get(t, [])
+                    if not ds:
+                        continue
+                    n = len(ds)
+                    n_over_5 = sum(1 for d in ds if d > 300)
+                    p90 = percentile(ds, 90) / 60
+                    p99 = percentile(ds, 99) / 60
+                    type_rows.append([
+                        t.capitalize(),
+                        str(by_type_n_days[t]),
+                        str(n),
+                        str(by_type_cancelled[t]),
+                        f"{n_over_5 / n * 100:.1f} %",
+                        "à l'heure" if p90 < 0.5 else f"{p90:.0f} min",
+                        "à l'heure" if p99 < 0.5 else f"{p99:.0f} min",
+                    ])
+                lines.append(fmt_table(
+                    ["Type", "Jours", "Trains", "Annulés", "% > 5 min", "P90", "P99"],
+                    type_rows,
+                ))
+                lines.append("")
+
             dates_short = [d["date"][-5:] for d in daily_gen]
             lines.append("### P90 par jour _(le 10 % le plus en retard reste sous cette barre)_")
             lines.append("")
@@ -760,6 +928,7 @@ def main() -> None:
             for d in daily_gen:
                 gen_rows.append([
                     d["date"],
+                    d["type"],
                     str(d["n"]),
                     str(d["cancelled"]),
                     f"{d['pct_over_5']:.1f} %",
@@ -770,7 +939,7 @@ def main() -> None:
                     fmt_gen(d["p99_min"]),
                 ])
             lines.append(fmt_table(
-                ["Jour", "Trains", "Annulés", "% > 5 min", "P50", "P80", "P90", "P95", "P99"],
+                ["Jour", "Type", "Trains", "Annulés", "% > 5 min", "P50", "P80", "P90", "P95", "P99"],
                 gen_rows,
             ))
             lines.append("")
