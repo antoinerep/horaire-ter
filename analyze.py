@@ -46,6 +46,29 @@ def day_type(date_iso: str) -> str:
     weekday = datetime.fromisoformat(date_iso).weekday()
     return "weekend" if weekday >= 5 else "semaine"
 
+
+# External events that skewed the daily numbers, added by hand as the incident
+# is identified from press / weather bulletins. Keeps the day-by-day table
+# honest — otherwise a canicule day looks like a systemic problem on the axis.
+DAY_NOTES: dict[str, tuple[str, str]] = {
+    "2026-07-08": (
+        "canicule",
+        "Vague de chaleur, 40 °C vallée du Rhône. SNCF a réduit son plan "
+        "de transport aux heures chaudes (14 h-19 h). Alerte orange sur "
+        "67 départements le 9/07.",
+    ),
+    "2026-07-09": (
+        "canicule",
+        "Suite de la canicule, alerte orange nationale, plusieurs "
+        "départements du Sud-Est en alerte rouge.",
+    ),
+    "2026-07-17": (
+        "orages",
+        "Orages violents en AURA : interruptions Lyon-Bourg-en-Bresse "
+        "(Villars-les-Dombes), Lyon-Roanne (Régny), Lyon-Annecy.",
+    ),
+}
+
 STE_HUB = "stop_area:SNCF:87726000"  # Saint-Étienne Châteaucreux (trains)
 LE_PUY = "stop_area:SNCF:87734699"
 LYON_STOPS = {
@@ -925,7 +948,12 @@ def main() -> None:
                 return "à l'heure" if v < 0.5 else f"{v:.0f} min"
 
             gen_rows = []
+            seen_notes: list[tuple[str, str, str]] = []  # (date, short, long)
             for d in daily_gen:
+                note = DAY_NOTES.get(d["date"])
+                short_note = note[0] if note else ""
+                if note:
+                    seen_notes.append((d["date"], note[0], note[1]))
                 gen_rows.append([
                     d["date"],
                     d["type"],
@@ -937,12 +965,18 @@ def main() -> None:
                     fmt_gen(d["p90_min"]),
                     fmt_gen(d["p95_min"]),
                     fmt_gen(d["p99_min"]),
+                    short_note,
                 ])
             lines.append(fmt_table(
-                ["Jour", "Type", "Trains", "Annulés", "% > 5 min", "P50", "P80", "P90", "P95", "P99"],
+                ["Jour", "Type", "Trains", "Annulés", "% > 5 min", "P50", "P80", "P90", "P95", "P99", "Note"],
                 gen_rows,
             ))
             lines.append("")
+            if seen_notes:
+                lines.append("**Contexte des jours annotés :**")
+                for date_iso, _short, long_txt in seen_notes:
+                    lines.append(f"- **{date_iso}** — {long_txt}")
+                lines.append("")
 
     # Motifs de retard: aggregate reasons across disrupted trains
     # (delayed ≥ 5 min or cancelled). One reason per train.
