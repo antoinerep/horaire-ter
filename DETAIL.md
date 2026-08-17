@@ -1,6 +1,6 @@
 # Détails Lyon ↔ Le Puy
 
-_Mis à jour le 2026-08-17 02:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement. Vue d'ensemble : [STATS.md](STATS.md)._
+_Mis à jour le 2026-08-17 05:02 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement. Vue d'ensemble : [STATS.md](STATS.md)._
 
 ## Trains en retard ou annulés
 
@@ -9,6 +9,7 @@ _Mis à jour le 2026-08-17 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 886865 | 16/08 | 09:20 | Saint-Étienne Châteaucreux | Ambérieu-en-Bugey (via Lyon Part-Dieu) | ANNULÉ | +120 min (train suivant) | — | Incident lors de la préparation du train |
 | 886706 | 16/08 | 07:07 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +60 min | — | Incident lors de la préparation du train |
 | 889960 | 16/08 | 15:58 | Saint-Étienne Châteaucreux | Le Puy-en-Velay (Le Puy-en-Velay) | Retard | +10 min | +10 min | Prise en charge de clients en correspondance |
+| 886201 | 17/08 | 05:31 | Lyon Perrache | Firminy (Firminy) | Retard | +10 min | +10 min | Incident lors de la préparation du train |
 | 886710 | 16/08 | 08:54 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Prise en charge de clients en correspondance |
 | 886714 | 16/08 | 09:07 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Réutilisation d'un train |
 | 886716 | 16/08 | 10:54 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Incident lors de la préparation du train |
@@ -16,6 +17,8 @@ _Mis à jour le 2026-08-17 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 886867 | 16/08 | 10:20 | Saint-Étienne Châteaucreux | Lyon Part Dieu (Lyon) | Retard | +5 min | +5 min | Incident lors de la préparation du train |
 | 889979 | 16/08 | 17:35 | Le Puy-en-Velay | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Réutilisation d'un train |
 | 886752 | 16/08 | 22:24 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | — |
+| 886809 | 17/08 | 07:20 | Saint-Étienne Châteaucreux | Ambérieu-en-Bugey (via Lyon Part-Dieu) | Retard | +5 min | +5 min | — |
+| 886257 | 17/08 | 06:38 | Firminy | Lyon Perrache (Lyon) | Retard | +5 min | +5 min | — |
 
 ## Correspondances à St-Étienne Châteaucreux
 
@@ -70,7 +73,7 @@ _Mis à jour le 2026-08-17 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 17/08 | 886706 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 08:40 | 889954 08:54 | Le Puy-en-Velay (Le Puy-en-Velay) | 14 min | à l'heure | +0 min |
 | 17/08 | 886738 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 18:40 | 889964 18:54 | Le Puy-en-Velay (Le Puy-en-Velay) | 14 min | à l'heure | +0 min |
 | 17/08 | 886243 | Lyon Perrache | 20:26 | 889966 20:40 | Le Puy-en-Velay (Le Puy-en-Velay) | 14 min | à l'heure | +0 min |
-| 17/08 | 889973 | Le Puy-en-Velay | 07:06 | 886809 07:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 14 min | à l'heure | +0 min |
+| 17/08 | 889973 | Le Puy-en-Velay | 07:06 | 886809 07:25 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 14 min | à l'heure | +5 min |
 | 16/08 | 886734 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 17:40 | 889984 17:55 | Le Puy-en-Velay (Le Puy-en-Velay) | 15 min | à l'heure | +0 min |
 | 16/08 | 889959 | Le Puy-en-Velay | 12:05 | 886823 12:20 | Lyon Part Dieu (Lyon) | 15 min | à l'heure | +0 min |
 | 17/08 | 889959 | Le Puy-en-Velay | 12:15 | 886219 12:30 | Firminy (Firminy) | 15 min | à l'heure | +0 min |
