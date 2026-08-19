@@ -1,14 +1,14 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-08-19 02:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-08-19 04:56 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
-- **Trains observés** : 254
+- **Trains observés** : 238
 - **Trains annulés** : 0
-- **Trains en retard ≥ 5 min ou annulés** : 9 (3.5 %)
+- **Trains en retard ≥ 5 min ou annulés** : 9 (3.8 %)
 
-- **Correspondances à St-Étienne Châteaucreux** : 404 analysées, **7 loupées** (1.7 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+- **Correspondances à St-Étienne Châteaucreux** : 380 analysées, **6 loupées** (1.6 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
 ## Distribution des retards à l'arrivée
 
@@ -28,9 +28,9 @@ _Mis à jour le 2026-08-19 02:14 UTC — fenêtre des dernières 24 heures. Trai
 
 | Ligne | Trains | Annulés | % > 5 min | P90 | P99 |
 |---|---|---|---|---|---|
-| C18 — Lyon ↔ St-Étienne | 130 | 0 | 1.5 % | à l'heure | 12 min |
-| P28 — St-Étienne ↔ Le Puy | 44 | 0 | 0.0 % | à l'heure | 3 min |
-| C18+P28 (through-service) | 80 | 0 | 0.0 % | à l'heure | à l'heure |
+| C18 — Lyon ↔ St-Étienne | 123 | 0 | 1.6 % | à l'heure | 13 min |
+| P28 — St-Étienne ↔ Le Puy | 39 | 0 | 0.0 % | à l'heure | 3 min |
+| C18+P28 (through-service) | 76 | 0 | 0.0 % | à l'heure | à l'heure |
 
 ### Par type de jour (tout l'historique)
 
@@ -143,7 +143,7 @@ _Motifs remontés par l'API SNCF `/disruptions` pour les trains en retard ≥ 5 
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 
-86 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
+79 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
 
 **0.0 %** des trajets avec un retard d'arrivée > 5 min.
 
