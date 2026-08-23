@@ -1,14 +1,14 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-08-23 02:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-08-23 04:56 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
-- **Trains observés** : 141
+- **Trains observés** : 135
 - **Trains annulés** : 0
-- **Trains en retard ≥ 5 min ou annulés** : 5 (3.5 %)
+- **Trains en retard ≥ 5 min ou annulés** : 5 (3.7 %)
 
-- **Correspondances à St-Étienne Châteaucreux** : 180 analysées, **1 loupées** (0.6 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+- **Correspondances à St-Étienne Châteaucreux** : 170 analysées, **1 loupées** (0.6 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
 ## Distribution des retards à l'arrivée
 
@@ -28,9 +28,9 @@ _Mis à jour le 2026-08-23 02:14 UTC — fenêtre des dernières 24 heures. Trai
 
 | Ligne | Trains | Annulés | % > 5 min | P90 | P99 |
 |---|---|---|---|---|---|
-| C18 — Lyon ↔ St-Étienne | 65 | 0 | 0.0 % | à l'heure | 5 min |
-| P28 — St-Étienne ↔ Le Puy | 32 | 0 | 0.0 % | à l'heure | 5 min |
-| C18+P28 (through-service) | 44 | 0 | 0.0 % | à l'heure | à l'heure |
+| C18 — Lyon ↔ St-Étienne | 63 | 0 | 0.0 % | à l'heure | 5 min |
+| P28 — St-Étienne ↔ Le Puy | 30 | 0 | 0.0 % | à l'heure | 5 min |
+| C18+P28 (through-service) | 42 | 0 | 0.0 % | à l'heure | à l'heure |
 
 ### Par type de jour (tout l'historique)
 
@@ -145,7 +145,7 @@ _Motifs remontés par l'API SNCF `/disruptions` pour les trains en retard ≥ 5 
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 
-40 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
+37 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
 
 **0.0 %** des trajets avec un retard d'arrivée > 5 min.
 
@@ -153,7 +153,7 @@ _Motifs remontés par l'API SNCF `/disruptions` pour les trains en retard ≥ 5 
 |---|---|
 | 50 % | à l'heure |
 | 80 % | à l'heure |
-| 90 % | ≤ 1 min |
+| 90 % | ≤ 2 min |
 | 95 % | ≤ 5 min |
 | 99 % | ≤ 5 min |
 
