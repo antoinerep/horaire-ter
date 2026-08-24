@@ -1,6 +1,6 @@
 # Détails Lyon ↔ Le Puy
 
-_Mis à jour le 2026-08-24 02:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement. Vue d'ensemble : [STATS.md](STATS.md)._
+_Mis à jour le 2026-08-24 05:06 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement. Vue d'ensemble : [STATS.md](STATS.md)._
 
 ## Trains en retard ou annulés
 
@@ -9,15 +9,16 @@ _Mis à jour le 2026-08-24 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 886752 | 23/08 | 22:24 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +10 min | +10 min | — |
 | 886706 | 23/08 | 07:07 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Défaillance de matériel |
 | 886710 | 23/08 | 08:54 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Réutilisation d'un train |
+| 889950 | 24/08 | 05:31 | Saint-Étienne Châteaucreux | Le Puy-en-Velay (Le Puy-en-Velay) | Retard | +5 min | +5 min | Incident lors de la préparation du train |
 
 ## Correspondances à St-Étienne Châteaucreux
 
-266 correspondances analysées (toute destination), dont **2 loupées** (gap réel < 5 min). Fenêtre de candidat : 75 min après l'arrivée prévue.
+266 correspondances analysées (toute destination), dont **1 loupées** (gap réel < 5 min). Fenêtre de candidat : 75 min après l'arrivée prévue.
 
 | Jour | Train arr. | Origine | Arr. St-Étienne | Train pris | Destination | Écart prévu | Statut | Retard ressenti |
 |---|---|---|---|---|---|---|---|---|
 | 24/08 | 886269 | Firminy | 11:00 | 889980 12:53 | Le Puy-en-Velay (Le Puy-en-Velay) | 1 min | LOUPÉE | +112 min |
-| 24/08 | 886251 | Firminy | 05:30 | 889952 06:48 | Le Puy-en-Velay (Le Puy-en-Velay) | 1 min | LOUPÉE | +77 min |
+| 24/08 | 886251 | Firminy | 05:30 | 889950 05:36 | Le Puy-en-Velay (Le Puy-en-Velay) | 1 min | à l'heure | +5 min |
 | 24/08 | 886285 | Firminy | 18:00 | 889982 18:05 | Le Puy-en-Velay (Le Puy-en-Velay) | 5 min | à l'heure | +0 min |
 | 24/08 | 889951 | Le Puy-en-Velay | 05:58 | 886253 06:04 | Lyon Perrache (Lyon) | 6 min | à l'heure | +0 min |
 | 23/08 | 889965 | Le Puy-en-Velay | 21:13 | 886859 21:20 | Lyon Part Dieu (Lyon) | 7 min | à l'heure | +0 min |
@@ -67,4 +68,3 @@ _Mis à jour le 2026-08-24 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 23/08 | 886734 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 17:40 | 889984 17:55 | Le Puy-en-Velay (Le Puy-en-Velay) | 15 min | à l'heure | +0 min |
 | 23/08 | 889959 | Le Puy-en-Velay | 12:05 | 886823 12:20 | Lyon Part Dieu (Lyon) | 15 min | à l'heure | +0 min |
 | 24/08 | 889959 | Le Puy-en-Velay | 12:05 | 886823 12:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 15 min | à l'heure | +0 min |
-| 24/08 | 886281 | Firminy | 17:00 | 889962 17:17 | Le Puy-en-Velay (Le Puy-en-Velay) | 17 min | à l'heure | +0 min |
