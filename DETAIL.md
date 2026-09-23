@@ -1,6 +1,6 @@
 # Détails Lyon ↔ Le Puy
 
-_Mis à jour le 2026-09-23 02:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement. Vue d'ensemble : [STATS.md](STATS.md)._
+_Mis à jour le 2026-09-23 09:23 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement. Vue d'ensemble : [STATS.md](STATS.md)._
 
 ## Trains en retard ou annulés
 
@@ -10,14 +10,12 @@ _Mis à jour le 2026-09-23 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 886237 | 22/09 | 18:01 | Lyon Perrache | Firminy (Firminy) | ANNULÉ | +95 min (train suivant) | — | Panne d'une installation du réseau ferré |
 | 886239 | 22/09 | 18:31 | Lyon Perrache | Firminy (Firminy) | ANNULÉ | +65 min (train suivant) | — | Panne d'une installation du réseau ferré |
 | 886287 | 22/09 | 18:34 | Saint-Étienne Châteaucreux | Lyon Perrache (Lyon) | Retard | +60 min | +60 min | Panne d'une installation du réseau ferré |
-| 889973 | 22/09 | 05:43 | Le Puy-en-Velay | Saint-Étienne Châteaucreux (Saint-Étienne) | ANNULÉ | +60 min (train suivant) | — | — |
 | 889982 | 22/09 | 18:05 | Saint-Étienne Châteaucreux | Le Puy-en-Velay (Le Puy-en-Velay) | Retard | +40 min | +35 min | Panne d'une installation du réseau ferré |
+| 886803 | 23/09 | 05:50 | Saint-Étienne Châteaucreux | Ambérieu-en-Bugey (via Lyon Part-Dieu) | ANNULÉ | +30 min (train suivant) | — | Incident lors de la préparation du train |
+| 886708 | 23/09 | 07:37 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | Saint-Étienne Châteaucreux (Saint-Étienne) | ANNULÉ | +30 min (train suivant) | — | Incident lors de la préparation du train |
 | 886762 | 22/09 | 14:24 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +25 min | +25 min | Défaillance de matériel |
-| 886811 | 22/09 | 07:50 | Saint-Étienne Châteaucreux | Lyon Part Dieu (Lyon) | Retard | +15 min | +20 min | Réutilisation d'un train |
 | 886849 | 22/09 | 17:50 | Saint-Étienne Châteaucreux | Ambérieu-en-Bugey (via Lyon Part-Dieu) | Retard | +10 min | +5 min | Panne d'une installation du réseau ferré |
-| 886217 | 22/09 | 10:31 | Lyon Perrache | Firminy (Firminy) | Retard | +10 min | +5 min | Difficulté de gestion du trafic sur le réseau ferré |
 | 889960 | 22/09 | 15:58 | Saint-Étienne Châteaucreux | Le Puy-en-Velay (Le Puy-en-Velay) | Retard | +10 min | +10 min | Prise en charge de clients en correspondance |
-| 886706 | 22/09 | 07:07 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Difficulté de gestion du trafic sur le réseau ferré |
 | 886720 | 22/09 | 12:24 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Difficulté de gestion du trafic sur le réseau ferré |
 | 886730 | 22/09 | 15:24 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Réutilisation d'un train |
 | 886732 | 22/09 | 16:24 | Lyon Part Dieu | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Difficulté de gestion du trafic sur le réseau ferré |
@@ -27,11 +25,10 @@ _Mis à jour le 2026-09-23 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 886821 | 22/09 | 11:50 | Saint-Étienne Châteaucreux | Lyon Part Dieu (Lyon) | Retard | +5 min | +5 min | Incident lors de la préparation du train |
 | 886825 | 22/09 | 12:50 | Saint-Étienne Châteaucreux | Lyon Part Dieu (Lyon) | Retard | +5 min | +0 min | Difficulté de gestion du trafic sur le réseau ferré |
 | 886243 | 22/09 | 19:31 | Lyon Perrache | Firminy (Firminy) | Retard | +5 min | +5 min | Réutilisation d'un train |
-| 889953 | 22/09 | 07:39 | Le Puy-en-Velay | Saint-Étienne Châteaucreux (Saint-Étienne) | Retard | +5 min | +5 min | Réutilisation d'un train |
 
 ## Correspondances à St-Étienne Châteaucreux
 
-333 correspondances analysées (toute destination), dont **4 loupées** (gap réel < 5 min). Fenêtre de candidat : 75 min après l'arrivée prévue.
+269 correspondances analysées (toute destination), dont **4 loupées** (gap réel < 5 min). Fenêtre de candidat : 75 min après l'arrivée prévue.
 
 | Jour | Train arr. | Origine | Arr. St-Étienne | Train pris | Destination | Écart prévu | Statut | Retard ressenti |
 |---|---|---|---|---|---|---|---|---|
@@ -49,14 +46,8 @@ _Mis à jour le 2026-09-23 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 23/09 | 889965 | Le Puy-en-Velay | 21:13 | 886859 21:20 | Lyon Part Dieu (Lyon) | 7 min | à l'heure | +0 min |
 | 22/09 | 886233 | Lyon Perrache | 17:56 | 889982 18:40 | Le Puy-en-Velay (Le Puy-en-Velay) | 9 min | à l'heure | +35 min |
 | 23/09 | 886233 | Lyon Perrache | 17:56 | 889982 18:05 | Le Puy-en-Velay (Le Puy-en-Velay) | 9 min | à l'heure | +0 min |
-| 22/09 | 886702 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 07:40 | 886811 08:10 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +20 min |
-| 22/09 | 886704 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 08:10 | 886863 08:20 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
-| 22/09 | 886706 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 08:45 (+5m) | 886813 08:50 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
-| 22/09 | 886710 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 09:40 | 886815 09:50 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
-| 22/09 | 886714 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10:40 | 886817 10:50 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
-| 22/09 | 886758 | Lyon Part Dieu | 11:10 | 886869 11:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
 | 22/09 | 886718 | Lyon Part Dieu | 12:10 | 886823 12:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
-| 22/09 | 886760 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 12:40 | 886825 12:50 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
+| 22/09 | 886760 | Montluel | 12:40 | 886825 12:50 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
 | 22/09 | 886720 | Lyon Part Dieu | 13:15 (+5m) | 886827 13:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
 | 22/09 | 886722 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 13:40 | 886829 13:50 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
 | 22/09 | 886724 | Lyon Part Dieu | 14:10 | 886871 14:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
@@ -67,8 +58,6 @@ _Mis à jour le 2026-09-23 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 22/09 | 886736 | Lyon Part Dieu | 18:10 | 886851 18:25 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +5 min |
 | 22/09 | 886744 | Lyon Part Dieu | 20:10 | 886857 20:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
 | 22/09 | 886744 | Lyon Part Dieu | 20:10 | 889966 20:20 | Le Puy-en-Velay (Le Puy-en-Velay) | 10 min | à l'heure | +0 min |
-| 22/09 | 889975 | Le Puy-en-Velay | 08:10 | 886863 08:20 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
-| 22/09 | 889953 | Le Puy-en-Velay | 09:15 (+5m) | 886865 09:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
 | 22/09 | 889979 | Le Puy-en-Velay | 19:10 | 886855 19:25 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +5 min |
 | 23/09 | 886702 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 07:40 | 886811 07:50 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
 | 23/09 | 886704 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 08:10 | 886863 08:20 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
@@ -89,3 +78,11 @@ _Mis à jour le 2026-09-23 02:14 UTC — fenêtre des dernières 24 heures. Trai
 | 23/09 | 886732 | Lyon Part Dieu | 17:10 | 886847 17:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
 | 23/09 | 886736 | Lyon Part Dieu | 18:10 | 886851 18:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
 | 23/09 | 886744 | Lyon Part Dieu | 20:10 | 886857 20:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
+| 23/09 | 886744 | Lyon Part Dieu | 20:10 | 889966 20:20 | Le Puy-en-Velay (Le Puy-en-Velay) | 10 min | à l'heure | +0 min |
+| 23/09 | 889975 | Le Puy-en-Velay | 08:10 | 886863 08:20 | Lyon Part Dieu (Lyon) | 10 min | à l'heure | +0 min |
+| 23/09 | 889953 | Le Puy-en-Velay | 09:10 | 886865 09:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
+| 23/09 | 889979 | Le Puy-en-Velay | 19:10 | 886855 19:20 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 10 min | à l'heure | +0 min |
+| 23/09 | 889955 | Le Puy-en-Velay | 10:09 | 886867 10:20 | Lyon Part Dieu (Lyon) | 11 min | à l'heure | +0 min |
+| 22/09 | 886738 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 18:40 | 889964 18:54 | Le Puy-en-Velay (Le Puy-en-Velay) | 14 min | à l'heure | +0 min |
+| 23/09 | 886706 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 08:40 | 889954 08:54 | Le Puy-en-Velay (Le Puy-en-Velay) | 14 min | à l'heure | +0 min |
+| 23/09 | 886738 | Ambérieu-en-Bugey (via Lyon Part-Dieu) | 18:40 | 889964 18:54 | Le Puy-en-Velay (Le Puy-en-Velay) | 14 min | à l'heure | +0 min |
