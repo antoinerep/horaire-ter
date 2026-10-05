@@ -28,6 +28,14 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
+    # Exposed at job level, not per step: a step's `if:` is evaluated BEFORE
+    # that step's own `env:` is applied, and the `secrets` context is not
+    # available in a step `if:` at all. Declared inside the step, the
+    # heartbeat condition always saw an empty value, so the step was silently
+    # skipped and healthchecks.io never heard from us — the one layer meant to
+    # catch GitHub Actions not running at all.
+    env:
+      HEALTHCHECKS_URL: ${{ secrets.HEALTHCHECKS_URL }}
     steps:
       - uses: actions/checkout@v5
 
@@ -74,12 +82,8 @@ jobs:
 
       - name: Heartbeat OK (healthchecks.io)
         if: success() && env.HEALTHCHECKS_URL != ''
-        env:
-          HEALTHCHECKS_URL: ${{ secrets.HEALTHCHECKS_URL }}
         run: curl -fsS -m 10 --retry 3 "$HEALTHCHECKS_URL"
 
       - name: Heartbeat FAIL (healthchecks.io)
         if: failure() && env.HEALTHCHECKS_URL != ''
-        env:
-          HEALTHCHECKS_URL: ${{ secrets.HEALTHCHECKS_URL }}
         run: curl -fsS -m 10 --retry 3 "${HEALTHCHECKS_URL}/fail"
