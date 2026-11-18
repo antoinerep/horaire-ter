@@ -1,20 +1,20 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-11-18 03:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-11-18 13:13 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
-- **Trains observés** : 209
+- **Trains observés** : 164
 - **Trains annulés** : 6
-- **Trains en retard ≥ 5 min ou annulés** : 18 (8.6 %)
+- **Trains en retard ≥ 5 min ou annulés** : 16 (9.8 %)
 
-- **Correspondances à St-Étienne Châteaucreux** : 280 analysées, **3 loupées** (1.1 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+- **Correspondances à St-Étienne Châteaucreux** : 224 analysées, **2 loupées** (0.9 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
 ## Distribution des retards à l'arrivée
 
 **Périmètre :** TER REGIONAURA (Auvergne-Rhône-Alpes) sur l'axe Lyon ↔ Saint-Étienne ↔ Le Puy-en-Velay — trains qui passent par au moins 2 des 3 hubs (Lyon Part-Dieu/Perrache, Saint-Étienne Châteaucreux, Le Puy-en-Velay). Lignes C18 et P28 essentiellement. TGV, Intercités et trains hors-axe exclus. Annulations comptées au retard du prochain train de même direction. Hors correspondance (voir la section dédiée plus bas).
 
-**4.8 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
+**3.7 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
 
 | Percentile | Retard |
 |---|---|
@@ -22,15 +22,15 @@ _Mis à jour le 2026-11-18 03:14 UTC — fenêtre des dernières 24 heures. Trai
 | 80 % | à l'heure |
 | 90 % | à l'heure |
 | 95 % | ≤ 5 min |
-| 99 % | ≤ 88 min |
+| 99 % | ≤ 96 min |
 
 ### Par ligne (fenêtre 24 h)
 
 | Ligne | Trains | Annulés | % > 5 min | P90 | P99 |
 |---|---|---|---|---|---|
-| C18 — Lyon ↔ St-Étienne | 103 | 0 | 3.9 % | à l'heure | 25 min |
-| P28 — St-Étienne ↔ Le Puy | 38 | 2 | 5.3 % | 2 min | 119 min |
-| C18+P28 (through-service) | 68 | 4 | 5.9 % | à l'heure | 70 min |
+| C18 — Lyon ↔ St-Étienne | 83 | 0 | 0.0 % | 5 min | 5 min |
+| P28 — St-Étienne ↔ Le Puy | 28 | 2 | 7.1 % | à l'heure | 121 min |
+| C18+P28 (through-service) | 53 | 4 | 7.5 % | à l'heure | 74 min |
 
 ### Par type de jour (tout l'historique)
 
@@ -47,7 +47,7 @@ xychart-beta
     title "P90 retard à l'arrivée (min)"
     x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25", "07-26", "07-27", "07-28", "07-29", "07-30", "07-31", "08-01", "08-02", "08-03", "08-04", "08-05", "08-06", "08-07", "08-08", "08-09", "08-10", "08-11", "08-12", "08-13", "08-14", "08-15", "08-16", "08-17", "08-18", "08-19", "08-20", "08-21", "08-22", "08-23", "08-24", "08-25", "08-26", "08-27", "08-28", "08-29", "08-30", "08-31", "09-01", "09-02", "09-03", "09-04", "09-05", "09-06", "09-07", "09-08", "09-09", "09-10", "09-11", "09-12", "09-13", "09-14", "09-15", "09-16", "09-17", "09-18", "09-19", "09-20", "09-21", "09-22", "09-23", "09-24", "09-25", "09-26", "09-27", "09-28", "09-29", "09-30", "10-01", "10-02", "10-03", "10-04", "10-05", "10-06", "10-07", "10-08", "10-09", "10-10", "10-11", "10-12", "10-13", "10-14", "10-15", "10-16", "10-18", "10-19", "10-20", "10-21", "10-22", "10-23", "10-24", "10-25", "10-26", "10-27", "10-28", "10-29", "10-30", "10-31", "11-01", "11-02", "11-03", "11-04", "11-05", "11-06", "11-07", "11-08", "11-09", "11-10", "11-11", "11-12", "11-13", "11-14", "11-15", "11-16", "11-17", "11-18"]
     y-axis "Retard (min)" 0 --> 138
-    line [6.5, 10.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 60.0, 5.0, 5.0, 0.0, 0.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 3.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 5.0, 0.0, 5.0, 0.0, 0.0, 5.0, 25.0, 5.0, 0.0, 60.0, 1.5, 0.0, 0.0, 115.0, 2.5, 0.0, 5.0, 0.0, 0.0, 5.0, 0.0, 5.0, 5.0, 10.0, 5.0, 0.0, 0.0, 30.0, 5.0, 5.0, 0.0, 0.0, 0.0, 60.0, 5.0, 0.0, 0.0, 0.0, 0.0, 10.0, 0.0, 5.0, 5.0, 49.0, 5.0, 0.0, 11.0, 0.0, 5.0, 5.0, 0.0, 21.0, 0.0, 0.0, 5.0, 5.0, 0.0, 2.5, 5.0, 5.0, 5.0, 5.0, 12.5, 0.0, 5.0, 0.0, 5.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 3.0, 114.0, 90.0, 23.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 5.0, 0.0]
+    line [6.5, 10.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 60.0, 5.0, 5.0, 0.0, 0.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 5.0, 5.0, 0.0, 0.0, 0.0, 3.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 5.0, 0.0, 5.0, 5.0, 5.0, 0.0, 0.0, 5.0, 0.0, 5.0, 0.0, 0.0, 5.0, 25.0, 5.0, 0.0, 60.0, 1.5, 0.0, 0.0, 115.0, 2.5, 0.0, 5.0, 0.0, 0.0, 5.0, 0.0, 5.0, 5.0, 10.0, 5.0, 0.0, 0.0, 30.0, 5.0, 5.0, 0.0, 0.0, 0.0, 60.0, 5.0, 0.0, 0.0, 0.0, 0.0, 10.0, 0.0, 5.0, 5.0, 49.0, 5.0, 0.0, 11.0, 0.0, 5.0, 5.0, 0.0, 21.0, 0.0, 0.0, 5.0, 5.0, 0.0, 2.5, 5.0, 5.0, 5.0, 5.0, 12.5, 0.0, 5.0, 0.0, 5.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 3.0, 114.0, 90.0, 23.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.0, 0.0, 0.0, 5.0, 2.5]
 ```
 
 ### P99 par jour _(le pire 1 %, dominé par les retards lourds et annulations)_
@@ -210,7 +210,7 @@ xychart-beta
 | 2026-11-15 | weekend | 61 | 0 | 1.6 % | à l'heure | à l'heure | à l'heure | 5 min | 11 min |  |
 | 2026-11-16 | semaine | 126 | 4 | 4.8 % | à l'heure | à l'heure | à l'heure | 5 min | 60 min |  |
 | 2026-11-17 | semaine | 83 | 0 | 4.8 % | à l'heure | à l'heure | 5 min | 5 min | 25 min |  |
-| 2026-11-18 | semaine | 126 | 6 | 4.8 % | à l'heure | à l'heure | à l'heure | à l'heure | 103 min |  |
+| 2026-11-18 | semaine | 126 | 6 | 4.8 % | à l'heure | à l'heure | 2 min | 5 min | 103 min |  |
 
 **Contexte des jours annotés :**
 - **2026-07-08** — Vague de chaleur, 40 °C vallée du Rhône. SNCF a réduit son plan de transport aux heures chaudes (14 h-19 h). Alerte orange sur 67 départements le 9/07.
@@ -221,18 +221,17 @@ xychart-beta
 
 _Motifs remontés par l'API SNCF `/disruptions` pour les trains en retard ≥ 5 min ou annulés sur la fenêtre. Un motif = un train._
 
-**11/18** trains perturbés associés à un motif.
+**8/16** trains perturbés associés à un motif.
 
 | Trains | Effet | Motif |
 |---|---|---|
-| 4 | SIGNIFICANT_DELAYS | Difficulté de gestion du trafic sur le réseau ferré |
-| 4 | SIGNIFICANT_DELAYS | Réutilisation d'un train |
+| 3 | SIGNIFICANT_DELAYS | Réutilisation d'un train |
+| 3 | SIGNIFICANT_DELAYS | Difficulté de gestion du trafic sur le réseau ferré |
 | 2 | SIGNIFICANT_DELAYS | Incident lors de la préparation du train |
-| 1 | SIGNIFICANT_DELAYS | Prise en charge de clients en correspondance |
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 
-51 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
+43 trajets analysés (les deux sens fusionnés), dont 0 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
 
 **0.0 %** des trajets avec un retard d'arrivée > 5 min.
 
@@ -242,7 +241,7 @@ _Motifs remontés par l'API SNCF `/disruptions` pour les trains en retard ≥ 5 
 | 80 % | à l'heure |
 | 90 % | à l'heure |
 | 95 % | à l'heure |
-| 99 % | ≤ 2 min |
+| 99 % | ≤ 3 min |
 
 ## Évolution quotidienne Lyon ↔ Le Puy
 
@@ -265,7 +264,7 @@ xychart-beta
     title "P99 retard Lyon ↔ Le Puy (min)"
     x-axis ["06-24", "06-25", "06-26", "06-27", "06-28", "06-29", "06-30", "07-01", "07-02", "07-03", "07-04", "07-05", "07-06", "07-07", "07-08", "07-09", "07-10", "07-11", "07-12", "07-13", "07-14", "07-15", "07-16", "07-17", "07-18", "07-19", "07-20", "07-21", "07-22", "07-23", "07-24", "07-25", "07-26", "07-27", "07-28", "07-29", "07-30", "07-31", "08-01", "08-02", "08-03", "08-04", "08-05", "08-06", "08-07", "08-08", "08-09", "08-10", "08-11", "08-12", "08-13", "08-14", "08-15", "08-16", "08-17", "08-18", "08-19", "08-20", "08-21", "08-22", "08-23", "08-24", "08-25", "08-26", "08-27", "08-28", "08-29", "08-30", "08-31", "09-01", "09-02", "09-03", "09-04", "09-05", "09-06", "09-07", "09-08", "09-09", "09-10", "09-11", "09-12", "09-13", "09-14", "09-15", "09-16", "09-17", "09-18", "09-19", "09-20", "09-21", "09-22", "09-23", "09-24", "09-25", "09-26", "09-27", "09-28", "09-29", "09-30", "10-01", "10-02", "10-03", "10-04", "10-05", "10-06", "10-07", "10-08", "10-09", "10-10", "10-11", "10-12", "10-13", "10-14", "10-15", "10-16", "10-18", "10-19", "10-20", "10-21", "10-22", "10-23", "10-24", "10-25", "10-26", "10-27", "10-28", "10-29", "10-30", "10-31", "11-01", "11-02", "11-03", "11-04", "11-05", "11-06", "11-07", "11-08", "11-09", "11-10", "11-11", "11-12", "11-13", "11-14", "11-15", "11-16", "11-17", "11-18"]
     y-axis "Retard (min)" 0 --> 157
-    line [89.4, 11.2, 45.6, 47.9, 20.0, 30.0, 41.5, 30.0, 5.0, 17.2, 0.0, 8.5, 10.0, 3.0, 85.4, 5.0, 31.7, 0.0, 0.0, 15.0, 25.5, 20.0, 40.0, 48.3, 46.2, 0.0, 31.2, 21.8, 26.0, 29.2, 48.3, 0.0, 106.0, 2.9, 33.0, 36.9, 69.6, 0.0, 0.0, 0.0, 2.9, 30.9, 46.0, 0.0, 5.0, 3.8, 12.7, 26.7, 5.0, 29.2, 5.0, 46.0, 20.0, 4.2, 20.0, 5.0, 46.0, 8.0, 5.0, 5.0, 0.0, 20.0, 25.0, 72.7, 0.0, 31.3, 8.9, 4.3, 5.0, 120.9, 3.0, 10.0, 10.0, 0.0, 5.0, 30.0, 0.0, 20.2, 40.9, 40.0, 52.3, 4.2, 10.0, 48.4, 8.0, 5.0, 5.0, 8.9, 4.2, 0.0, 74.5, 5.0, 20.0, 3.5, 0.0, 26.5, 0.0, 28.6, 89.0, 35.0, 34.1, 0.0, 129.0, 32.2, 10.5, 5.0, 5.0, 89.8, 4.0, 5.0, 33.6, 30.0, 5.0, 5.0, 35.9, 9.2, 10.0, 79.3, 89.6, 10.0, 17.1, 5.0, 13.0, 97.1, 8.5, 33.3, 3.5, 15.4, 5.0, 4.3, 22.2, 18.0, 13.6, 4.6, 51.8, 7.8, 131.1, 3.1, 73.2, 5.0, 20.2, 3.0, 99.0, 17.0, 3.2, 4.3, 0.0]
+    line [89.4, 11.2, 45.6, 47.9, 20.0, 30.0, 41.5, 30.0, 5.0, 17.2, 0.0, 8.5, 10.0, 3.0, 85.4, 5.0, 31.7, 0.0, 0.0, 15.0, 25.5, 20.0, 40.0, 48.3, 46.2, 0.0, 31.2, 21.8, 26.0, 29.2, 48.3, 0.0, 106.0, 2.9, 33.0, 36.9, 69.6, 0.0, 0.0, 0.0, 2.9, 30.9, 46.0, 0.0, 5.0, 3.8, 12.7, 26.7, 5.0, 29.2, 5.0, 46.0, 20.0, 4.2, 20.0, 5.0, 46.0, 8.0, 5.0, 5.0, 0.0, 20.0, 25.0, 72.7, 0.0, 31.3, 8.9, 4.3, 5.0, 120.9, 3.0, 10.0, 10.0, 0.0, 5.0, 30.0, 0.0, 20.2, 40.9, 40.0, 52.3, 4.2, 10.0, 48.4, 8.0, 5.0, 5.0, 8.9, 4.2, 0.0, 74.5, 5.0, 20.0, 3.5, 0.0, 26.5, 0.0, 28.6, 89.0, 35.0, 34.1, 0.0, 129.0, 32.2, 10.5, 5.0, 5.0, 89.8, 4.0, 5.0, 33.6, 30.0, 5.0, 5.0, 35.9, 9.2, 10.0, 79.3, 89.6, 10.0, 17.1, 5.0, 13.0, 97.1, 8.5, 33.3, 3.5, 15.4, 5.0, 4.3, 22.2, 18.0, 13.6, 4.6, 51.8, 7.8, 131.1, 3.1, 73.2, 5.0, 20.2, 3.0, 99.0, 17.0, 3.2, 4.3, 3.2]
 ```
 
 ### Percentiles par jour
@@ -418,6 +417,6 @@ xychart-beta
 | 2026-11-15 | 16 | 0 | à l'heure | à l'heure | à l'heure | 5 min | 17 min |
 | 2026-11-16 | 38 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | 3 min |
 | 2026-11-17 | 15 | 0 | à l'heure | à l'heure | à l'heure | 1 min | 4 min |
-| 2026-11-18 | 36 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | à l'heure |
+| 2026-11-18 | 36 | 0 | à l'heure | à l'heure | à l'heure | à l'heure | 3 min |
 
 📄 **Listes détaillées** (trains en retard + correspondances) : voir [DETAIL.md](DETAIL.md).
