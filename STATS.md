@@ -1,36 +1,36 @@
 # Statistiques TER Lyon ↔ Le Puy
 
-_Mis à jour le 2026-11-24 15:00 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
+_Mis à jour le 2026-11-25 03:14 UTC — fenêtre des dernières 24 heures. Trains REGIONAURA uniquement._
 
 ## Vue d'ensemble
 
-- **Trains observés** : 172
+- **Trains observés** : 127
 - **Trains annulés** : 4
-- **Trains en retard ≥ 5 min ou annulés** : 20 (11.6 %)
+- **Trains en retard ≥ 5 min ou annulés** : 17 (13.4 %)
 
-- **Correspondances à St-Étienne Châteaucreux** : 252 analysées, **23 loupées** (9.1 %). Médiane retard ressenti à St-Étienne : 0.0 min.
+- **Correspondances à St-Étienne Châteaucreux** : 192 analysées, **22 loupées** (11.5 %). Médiane retard ressenti à St-Étienne : 0.0 min.
 
 ## Distribution des retards à l'arrivée
 
 **Périmètre :** TER REGIONAURA (Auvergne-Rhône-Alpes) sur l'axe Lyon ↔ Saint-Étienne ↔ Le Puy-en-Velay — trains qui passent par au moins 2 des 3 hubs (Lyon Part-Dieu/Perrache, Saint-Étienne Châteaucreux, Le Puy-en-Velay). Lignes C18 et P28 essentiellement. TGV, Intercités et trains hors-axe exclus. Annulations comptées au retard du prochain train de même direction. Hors correspondance (voir la section dédiée plus bas).
 
-**10.5 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
+**12.6 % des trains arrivent avec un retard supérieur à 5 min** (fenêtre 24 h glissante).
 
 | Percentile | Retard |
 |---|---|
 | 50 % | à l'heure |
 | 80 % | à l'heure |
-| 90 % | ≤ 10 min |
-| 95 % | ≤ 30 min |
-| 99 % | ≤ 63 min |
+| 90 % | ≤ 20 min |
+| 95 % | ≤ 44 min |
+| 99 % | ≤ 67 min |
 
 ### Par ligne (fenêtre 24 h)
 
 | Ligne | Trains | Annulés | % > 5 min | P90 | P99 |
 |---|---|---|---|---|---|
-| C18 — Lyon ↔ St-Étienne | 90 | 1 | 14.4 % | 20 min | 67 min |
-| P28 — St-Étienne ↔ Le Puy | 29 | 0 | 3.4 % | à l'heure | 9 min |
-| C18+P28 (through-service) | 53 | 3 | 7.5 % | à l'heure | 65 min |
+| C18 — Lyon ↔ St-Étienne | 66 | 1 | 18.2 % | 28 min | 81 min |
+| P28 — St-Étienne ↔ Le Puy | 21 | 0 | 0.0 % | à l'heure | à l'heure |
+| C18+P28 (through-service) | 40 | 3 | 10.0 % | 3 min | 66 min |
 
 ### Par type de jour (tout l'historique)
 
@@ -227,34 +227,32 @@ xychart-beta
 
 _Motifs remontés par l'API SNCF `/disruptions` pour les trains en retard ≥ 5 min ou annulés sur la fenêtre. Un motif = un train._
 
-**17/20** trains perturbés associés à un motif.
+**14/17** trains perturbés associés à un motif.
 
 | Trains | Effet | Motif |
 |---|---|---|
 | 6 | REDUCED_SERVICE | Panne d'une installation du réseau ferré |
 | 2 | REDUCED_SERVICE | Conditions météorologiques |
-| 1 | SIGNIFICANT_DELAYS | Difficulté de gestion du trafic sur le réseau ferré |
-| 1 | SIGNIFICANT_DELAYS | Incident lors de la préparation du train |
-| 1 | SIGNIFICANT_DELAYS | Prise en charge de clients en correspondance |
 | 1 | SIGNIFICANT_DELAYS | Réutilisation d'un train |
 | 1 | DETOUR | Travaux en cours sur le réseau ferré |
 | 1 | SIGNIFICANT_DELAYS | Défaillance de matériel |
 | 1 | NO_SERVICE | Travaux en cours sur le réseau ferré |
 | 1 | REDUCED_SERVICE | Travaux en cours sur le réseau ferré |
+| 1 | NO_SERVICE | Réutilisation d'un train |
 
 ## Focus Lyon ↔ Le Puy (correspondance Saint-Étienne incluse)
 
-54 trajets analysés (les deux sens fusionnés), dont 1 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
+40 trajets analysés (les deux sens fusionnés), dont 1 avec correspondance loupée. Le retard est mesuré à la gare d'arrivée finale, en prenant le train de substitution si la correspondance à Saint-Étienne a été ratée.
 
-**7.4 %** des trajets avec un retard d'arrivée > 5 min.
+**5.0 %** des trajets avec un retard d'arrivée > 5 min.
 
 | Percentile | Retard arrivée |
 |---|---|
 | 50 % | à l'heure |
 | 80 % | à l'heure |
-| 90 % | ≤ 5 min |
-| 95 % | ≤ 10 min |
-| 99 % | ≤ 67 min |
+| 90 % | à l'heure |
+| 95 % | ≤ 6 min |
+| 99 % | ≤ 81 min |
 
 ## Évolution quotidienne Lyon ↔ Le Puy
 
